@@ -1,5 +1,6 @@
 import logging
 import time
+from collections.abc import Generator
 
 import pytest
 
@@ -28,7 +29,7 @@ __all__ = [
 
 
 @pytest.fixture(autouse=True)
-def log_performance_test_duration(request: pytest.FixtureRequest) -> None:
+def log_performance_test_duration(request: pytest.FixtureRequest) -> Generator[None, None, None]:
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.INFO)
     for handler in root_logger.handlers:
