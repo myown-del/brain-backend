@@ -38,8 +38,8 @@ def map_graph_connection_to_schema(
 def map_graph_to_schema(graph: GraphData) -> GraphSchema:
     return GraphSchema(
         nodes=[map_graph_node_to_schema(node) for node in graph.nodes],
-        connections=[
+        connections=[   # fmt: skip
             map_graph_connection_to_schema(connection)
             for connection in graph.connections
-        ],  # fmt: skip
+        ],
     )

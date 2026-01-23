@@ -10,7 +10,7 @@ main_menu_window = Window(
         "Hello, I'm brain bot.\n"
         "\n"
         "Just send me a message and I'll save it for you."
-    ),  # fmt: skip
+    ),
     Start(
         text=Const("View your notes"),
         id="start_view_notes",

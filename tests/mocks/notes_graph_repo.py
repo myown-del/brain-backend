@@ -176,7 +176,7 @@ class DummyNotesGraphRepository(INotesGraphRepository):
             seeds = [
                 node_id for node_id, info in node_info.items()
                 if query_lower in str(info.get("title", "")).lower()
-            ] # fmt: skip
+            ]  # fmt: skip
             if not seeds:
                 return GraphData(nodes=[], connections=[])
 
@@ -200,7 +200,7 @@ class DummyNotesGraphRepository(INotesGraphRepository):
             candidate_nodes = {
                 node_id for node_id, dist in distances.items()
                 if dist <= depth
-            } # fmt: skip
+            }  # fmt: skip
         else:
             candidate_nodes = set(node_info.keys())
 
@@ -239,6 +239,6 @@ class DummyNotesGraphRepository(INotesGraphRepository):
         connections = [
             GraphConnection(from_id=f, to_id=t, kind=k)
             for f, t, k in connection_set
-        ] # fmt: skip
+        ]  # fmt: skip
 
         return GraphData(nodes=nodes, connections=connections)

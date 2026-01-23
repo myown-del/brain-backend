@@ -43,7 +43,7 @@ class S3FilesRepository(IS3FilesRepository):
             select(S3FileDB)
             .join(UserDB, UserDB.profile_picture_file_id == S3FileDB.id)
             .where(UserDB.id == user_id)
-        ) # fmt: skip
+        )  # fmt: skip
         result = await self._session.execute(query)
         db_model = result.scalar()
         if db_model:

@@ -35,7 +35,7 @@ class NotesRepository(INotesRepository):
             select(NoteDB)
             .join(UserDB)
             .where(UserDB.telegram_id == telegram_id)
-        ) # fmt: skip
+        )  # fmt: skip
         if from_date:
             query = query.where(NoteDB.created_at >= from_date)
         if to_date:
@@ -50,7 +50,7 @@ class NotesRepository(INotesRepository):
         query = (
             select(NoteDB)
             .where(NoteDB.id == note_id)
-        ) # fmt: skip
+        )  # fmt: skip
         result = await self._session.execute(query)
         db_model = result.scalar()
         if db_model:
@@ -60,7 +60,7 @@ class NotesRepository(INotesRepository):
         query = (
             select(NoteDB)
             .where(NoteDB.user_id == user_id)
-        ) # fmt: skip
+        )  # fmt: skip
         if exact_match:
             query = query.where(NoteDB.title == title)
         else:
@@ -85,7 +85,7 @@ class NotesRepository(INotesRepository):
             select(NoteDB)
             .where(NoteDB.user_id == user_id)
             .where(NoteDB.title.isnot(None))
-        ) # fmt: skip
+        )  # fmt: skip
         if exact_match:
             stmt = stmt.where(NoteDB.title == query)
         else:
@@ -102,7 +102,7 @@ class NotesRepository(INotesRepository):
         query = (
             select(NoteDB)
             .where(NoteDB.id == entity.id)
-        ) # fmt: skip
+        )  # fmt: skip
         result = await self._session.execute(query)
         db_model = result.scalar()
         if not db_model:
@@ -121,7 +121,7 @@ class NotesRepository(INotesRepository):
         query = (
             select(NoteDB)
             .where(NoteDB.id == entity_id)
-        ) # fmt: skip
+        )  # fmt: skip
         result = await self._session.execute(query)
         db_model = result.scalar()
         await self._session.delete(db_model)
@@ -138,7 +138,7 @@ class NotesRepository(INotesRepository):
             .select_from(NoteDB)
             .where(NoteDB.user_id == user_id)
             .where(NoteDB.title == title)
-        ) # fmt: skip
+        )  # fmt: skip
         if exclude_note_id:
             query = query.where(NoteDB.id != exclude_note_id)
         result = await self._session.execute(query)

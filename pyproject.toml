@@ -45,6 +45,9 @@ line-length = 120
 ignore = ["E501"]
 extend-exclude = ["brain/infrastructure/migrations"]
 
+[tool.ruff.lint]
+ignore = ["ISC001", "ISC002"]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["brain*"]

@@ -55,7 +55,7 @@ class KeywordsRepository(IKeywordsRepository):
             select(KeywordDB)
             .where(KeywordDB.user_id == user_id)
             .where(KeywordDB.name == name),
-        ) # fmt: skip
+        )  # fmt: skip
         db_model = result.scalar()
         if not db_model:
             return None
@@ -96,7 +96,7 @@ class KeywordsRepository(IKeywordsRepository):
             select(KeywordDB.id)
             .where(KeywordDB.user_id == user_id)
             .where(KeywordDB.name.in_(normalized))
-        ) # fmt: skip
+        )  # fmt: skip
         result = await self._session.execute(keyword_ids_stmt)
         keyword_ids = [row[0] for row in result.all()]
         if not keyword_ids:
@@ -143,6 +143,6 @@ class KeywordsRepository(IKeywordsRepository):
                 .where(NoteDB.user_id == user_id)
                 .where(NoteDB.represents_keyword_id == KeywordDB.id),
             )
-        ) # fmt: skip
+        )  # fmt: skip
         await self._session.execute(stmt)
         await self._session.commit()
