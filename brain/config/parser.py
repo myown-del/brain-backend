@@ -7,12 +7,12 @@ from typing import Type, Optional, TypeVar
 from dotenv import load_dotenv
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def cast_value(value: str, to_type: Type[T]) -> T:
     if to_type == bool:
-        return value.lower() in ['true', '1', 'yes']
+        return value.lower() in ["true", "1", "yes"]
     elif to_type == int:
         return int(value)
     elif to_type == float:
@@ -25,9 +25,9 @@ def cast_value(value: str, to_type: Type[T]) -> T:
 
 
 def load_config(
-        config_class: Type[T],
-        env_file_path: str = '.env',
-        parent_prefix: Optional[str] = None,
+    config_class: Type[T],
+    env_file_path: str = ".env",
+    parent_prefix: Optional[str] = None,
 ) -> T:
     load_dotenv(dotenv_path=Path(env_file_path))
 

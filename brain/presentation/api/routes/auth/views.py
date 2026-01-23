@@ -37,9 +37,9 @@ def _serialize_tg_bot_auth_session(
 
 @inject
 async def fake_auth(
-        auth_interactor: FromDishka[AuthInteractor],
-        auth_config: FromDishka[AuthenticationConfig],
-        body: FakeAuthSchema,
+    auth_interactor: FromDishka[AuthInteractor],
+    auth_config: FromDishka[AuthenticationConfig],
+    body: FakeAuthSchema,
 ):
     if body.admin_token != auth_config.admin_token:
         raise HTTPException(
@@ -65,8 +65,8 @@ async def fake_auth(
 
 @inject
 async def refresh_token(
-        auth_interactor: FromDishka[AuthInteractor],
-        body: RefreshTokenSchema,
+    auth_interactor: FromDishka[AuthInteractor],
+    body: RefreshTokenSchema,
 ):
     try:
         token = await auth_interactor.refresh_tokens(body.refresh_token)

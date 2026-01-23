@@ -9,6 +9,7 @@ from brain.application.interactors.auth.session_interactor import (
 
 from brain.presentation.tgbot.states import MainMenu
 
+
 async def handle_start_cmd(
     message: Message,
     command: CommandObject,
@@ -28,6 +29,7 @@ async def handle_start_cmd(
 
     if message.from_user and not message.from_user.is_bot:
         from brain.presentation.tgbot.tasks import upload_user_profile_picture_task
+
         await upload_user_profile_picture_task.kiq(telegram_id=message.from_user.id)
 
     await dialog_manager.start(state=MainMenu.main_menu, mode=StartMode.RESET_STACK)

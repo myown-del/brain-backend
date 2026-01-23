@@ -14,9 +14,9 @@ async def upload_image(
     file: UploadFile = File(...),
 ):
     content = await file.read()
-    extension = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
+    extension = file.filename.split(".")[-1] if "." in file.filename else "jpg"
     object_name = f"{uuid.uuid4()}.{extension}"
-    
+
     url = s3_client.upload_file(content, object_name, content_type=file.content_type)
     url = url.replace(s3_config.endpoint_url, s3_config.external_host)
     return {"url": url}

@@ -43,6 +43,7 @@ dev = [
 [tool.ruff]
 line-length = 120
 ignore = ["E501"]
+extend-exclude = ["brain/infrastructure/migrations"]
 
 [tool.setuptools.packages.find]
 where = ["."]

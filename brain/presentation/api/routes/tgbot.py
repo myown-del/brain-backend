@@ -10,9 +10,9 @@ from brain.config.models import APIConfig
 
 @inject
 async def handle_webhook(
-        request: Request,
-        bot: FromDishka[Bot],
-        dp: FromDishka[Dispatcher],
+    request: Request,
+    bot: FromDishka[Bot],
+    dp: FromDishka[Dispatcher],
 ):
     data = await request.json()
     update = Update(**data)
@@ -22,7 +22,7 @@ async def handle_webhook(
 def get_router(config: APIConfig) -> APIRouter:
     router = APIRouter()
     router.add_api_route(
-        path='/tg-bot/webhook',
+        path="/tg-bot/webhook",
         endpoint=handle_webhook,
         methods=["POST"],
     )
