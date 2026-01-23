@@ -86,18 +86,22 @@ async def test_note_update_renaming(
     graph_repo = await dishka_request.get(INotesGraphRepository)
 
     # Create original
-    note_id = await create_interactor.create_note(CreateNote(
-        by_user_telegram_id=user.telegram_id,
-        title="OldName",
-        text="Text",
-    ))
+    note_id = await create_interactor.create_note(
+        CreateNote(
+            by_user_telegram_id=user.telegram_id,
+            title="OldName",
+            text="Text",
+        )
+    )
 
     # Rename
-    await update_interactor.update_note(UpdateNote(
-        note_id=note_id,
-        title="NewName",
-        text="Text",
-    ))
+    await update_interactor.update_note(
+        UpdateNote(
+            note_id=note_id,
+            title="NewName",
+            text="Text",
+        )
+    )
 
     # Verify PG
     note = await repo_hub.notes.get_by_id(note_id)
@@ -108,7 +112,7 @@ async def test_note_update_renaming(
     assert old_count == 0
     new_count = await graph_repo.count_notes_by_user_and_title(user.id, "NewName")
     assert new_count == 1
-    
+
     # Verify Keyword persistence
     kw = await repo_hub.keywords.get_by_id(note.represents_keyword_id)
     assert kw.name == "NewName"
@@ -124,23 +128,27 @@ async def test_note_update_content_links(
     update_interactor = await dishka_request.get(UpdateNoteInteractor)
     graph_repo = await dishka_request.get(INotesGraphRepository)
 
-    note_id = await create_interactor.create_note(CreateNote(
-        by_user_telegram_id=user.telegram_id,
-        title="Linker",
-        text="Refers [[A]]",
-    ))
+    note_id = await create_interactor.create_note(
+        CreateNote(
+            by_user_telegram_id=user.telegram_id,
+            title="Linker",
+            text="Refers [[A]]",
+        )
+    )
 
     # Update: remove A, add B
-    await update_interactor.update_note(UpdateNote(
-        note_id=note_id,
-        title="Linker",
-        text="Refers [[B]]",
-    ))
+    await update_interactor.update_note(
+        UpdateNote(
+            note_id=note_id,
+            title="Linker",
+            text="Refers [[B]]",
+        )
+    )
 
     # Verify Graph
     count_a = await graph_repo.count_links_between_notes(user.id, "Linker", "A")
     assert count_a == 0
-    
+
     count_b = await graph_repo.count_links_between_notes(user.id, "Linker", "B")
     assert count_b == 1
 
@@ -153,24 +161,28 @@ async def test_note_update_patch(
 ):
     create_interactor = await dishka_request.get(CreateNoteInteractor)
     update_interactor = await dishka_request.get(UpdateNoteInteractor)
-    
-    note_id = await create_interactor.create_note(CreateNote(
-        by_user_telegram_id=user.telegram_id,
-        title="Patcher",
-        text="Hello world",
-    ))
+
+    note_id = await create_interactor.create_note(
+        CreateNote(
+            by_user_telegram_id=user.telegram_id,
+            title="Patcher",
+            text="Hello world",
+        )
+    )
 
     patch_str = get_patches_str("Hello world", "Hello patched")
-    
-    updated_note = await update_interactor.update_note(UpdateNote(
-        note_id=note_id,
-        title="Patcher",
-        text=None,
-        patch=patch_str,
-    ))
-    
+
+    updated_note = await update_interactor.update_note(
+        UpdateNote(
+            note_id=note_id,
+            title="Patcher",
+            text=None,
+            patch=patch_str,
+        )
+    )
+
     assert updated_note.text == "Hello patched"
-    
+
     db_note = await repo_hub.notes.get_by_id(note_id)
     assert db_note.text == "Hello patched"
 
@@ -185,23 +197,27 @@ async def test_note_update_keyword_gc(
     update_interactor = await dishka_request.get(UpdateNoteInteractor)
 
     # 1. Create note linking to "Temporary"
-    note_id = await create_interactor.create_note(CreateNote(
-        by_user_telegram_id=user.telegram_id,
-        title="Holder",
-        text="Links [[Temporary]]",
-    ))
-    
+    note_id = await create_interactor.create_note(
+        CreateNote(
+            by_user_telegram_id=user.telegram_id,
+            title="Holder",
+            text="Links [[Temporary]]",
+        )
+    )
+
     # Verify keyword exists
     kw = await repo_hub.keywords.get_by_user_and_name(user.id, "Temporary")
     assert kw is not None
 
     # 2. Update note to remove link
-    await update_interactor.update_note(UpdateNote(
-        note_id=note_id,
-        title="Holder",
-        text="Cleaning up links",
-    ))
-    
+    await update_interactor.update_note(
+        UpdateNote(
+            note_id=note_id,
+            title="Holder",
+            text="Cleaning up links",
+        )
+    )
+
     # 3. Verify keyword "Temporary" is gone (Garbage Collected)
     kw_after = await repo_hub.keywords.get_by_user_and_name(user.id, "Temporary")
     assert kw_after is None
@@ -212,13 +228,15 @@ async def test_note_update_not_found(
     dishka_request: AsyncContainer,
 ):
     update_interactor = await dishka_request.get(UpdateNoteInteractor)
-    
+
     with pytest.raises(NoteNotFoundException):
-        await update_interactor.update_note(UpdateNote(
-            note_id=uuid4(),
-            title="Ghost",
-            text="Boo",
-        ))
+        await update_interactor.update_note(
+            UpdateNote(
+                note_id=uuid4(),
+                title="Ghost",
+                text="Boo",
+            )
+        )
 
 
 @pytest.mark.asyncio
@@ -232,22 +250,26 @@ async def test_note_update_removes_wikilink_connection(
     graph_repo = await dishka_request.get(INotesGraphRepository)
 
     # 1. Create a note with a wikilink
-    note_id = await create_interactor.create_note(CreateNote(
-        by_user_telegram_id=user.telegram_id,
-        title="Source",
-        text="This refers to [[Target]]",
-    ))
+    note_id = await create_interactor.create_note(
+        CreateNote(
+            by_user_telegram_id=user.telegram_id,
+            title="Source",
+            text="This refers to [[Target]]",
+        )
+    )
 
     # Verify link exists initially
     initial_count = await graph_repo.count_links_between_notes(user.id, "Source", "Target")
     assert initial_count == 1
 
     # 2. Update the note to remove the wikilink
-    await update_interactor.update_note(UpdateNote(
-        note_id=note_id,
-        title="Source",
-        text="No links here anymore",
-    ))
+    await update_interactor.update_note(
+        UpdateNote(
+            note_id=note_id,
+            title="Source",
+            text="No links here anymore",
+        )
+    )
 
     # 3. Verify link is gone
     final_count = await graph_repo.count_links_between_notes(user.id, "Source", "Target")

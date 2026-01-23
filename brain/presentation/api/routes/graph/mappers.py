@@ -41,5 +41,5 @@ def map_graph_to_schema(graph: GraphData) -> GraphSchema:
         connections=[
             map_graph_connection_to_schema(connection)
             for connection in graph.connections
-        ],
+        ],  # fmt: skip
     )

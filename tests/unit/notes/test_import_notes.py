@@ -18,7 +18,7 @@ async def test_import_notes():
     mock_keyword_service = AsyncMock()
     mock_title_service = AsyncMock()
     mock_sync_service = AsyncMock()
-    
+
     interactor = ImportNotesInteractor(
         mock_user_interactor,
         mock_notes_repo,
@@ -27,10 +27,10 @@ async def test_import_notes():
         mock_title_service,
         mock_sync_service,
     )
-    
+
     mock_user = Mock(id=uuid4(), telegram_id=user_id)
     mock_user_interactor.get_user_by_telegram_id.return_value = mock_user
-    
+
     # Create valid zip
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w") as zf:
@@ -39,15 +39,15 @@ async def test_import_notes():
             "text": "Imported Content",
         }
         zf.writestr("Imported Note.json", json.dumps(note_data))
-    
+
     zip_bytes = zip_buffer.getvalue()
-    
+
     # Mock behavior
     mock_keyword_service.ensure_keyword_for_title.return_value = uuid4()
-    
+
     # Execute
     await interactor.import_notes(user_id, zip_bytes)
-    
+
     # Verify
     mock_title_service.ensure_unique_title.assert_called_with(mock_user.id, "Imported Note")
     mock_notes_repo.create.assert_called_once()
@@ -68,7 +68,7 @@ async def test_import_skip_existing():
     mock_keyword_service = AsyncMock()
     mock_title_service = AsyncMock()
     mock_sync_service = AsyncMock()
-    
+
     interactor = ImportNotesInteractor(
         mock_user_interactor,
         mock_notes_repo,
@@ -77,18 +77,18 @@ async def test_import_skip_existing():
         mock_title_service,
         mock_sync_service,
     )
-    
+
     mock_user = Mock(id=uuid4(), telegram_id=user_id)
     mock_user_interactor.get_user_by_telegram_id.return_value = mock_user
-    
+
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w") as zf:
         zf.writestr("Existing.json", json.dumps({"title": "Existing", "text": "Content"}))
-    
+
     mock_title_service.ensure_unique_title.side_effect = NoteTitleAlreadyExistsException()
-    
+
     # Execute
     await interactor.import_notes(user_id, zip_buffer.getvalue())
-    
+
     # Verify
     mock_notes_repo.create.assert_not_called()

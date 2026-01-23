@@ -109,7 +109,7 @@ def edit_multiple_small_blocks(text: str) -> str:
     chars = list(text)
     for index in indices:
         if index < len(chars):
-            chars[index:index + 10] = list("small_edit")
+            chars[index : index + 10] = list("small_edit")
     return "".join(chars)
 
 

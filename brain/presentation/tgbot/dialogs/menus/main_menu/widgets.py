@@ -9,10 +9,12 @@ main_menu_window = Window(
     Const(
         "Hello, I'm brain bot.\n"
         "\n"
-        "Just send me a message and I'll save it for you.",
-    ),
+        "Just send me a message and I'll save it for you."
+    ),  # fmt: skip
     Start(
-        text=Const("View your notes"), id="start_view_notes", state=ViewNotes.notes_list,
+        text=Const("View your notes"),
+        id="start_view_notes",
+        state=ViewNotes.notes_list,
     ),
     state=MainMenu.main_menu,
 )

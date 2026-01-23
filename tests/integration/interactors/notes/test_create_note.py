@@ -109,15 +109,15 @@ async def test_note_creation_with_wikilinks(
     # Verify PG State
     note = await repo_hub.notes.get_by_id(note_id)
     assert note.title == "Source"
-    
+
     # Verify Target Keyword Created
     target_kw = await repo_hub.keywords.get_by_user_and_name(user.id, "Target")
     assert target_kw is not None
-    
+
     # Verify Graph State
     links_count = await graph_repo.count_links_between_notes(user.id, "Source", "Target")
     assert links_count == 1
-    
+
     # Verify nodes count
     source_count = await graph_repo.count_notes_by_user_and_title(user.id, "Source")
     assert source_count == 1
@@ -141,7 +141,7 @@ async def test_note_creation_auto_title_with_links(
     )
     note_id = await create_interactor.create_note(data)
     note = await repo_hub.notes.get_by_id(note_id)
-    
+
     # Verify link established using generated title
     links_count = await graph_repo.count_links_between_notes(user.id, note.title, "Linked")
     assert links_count == 1

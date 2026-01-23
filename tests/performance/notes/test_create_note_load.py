@@ -28,7 +28,7 @@ async def test_load_create_notes(
     payloads = [
         {"title": f"Load Create {index}", "text": f"Body {index}"}
         for index in range(total)
-    ]
+    ] # fmt: skip
 
     async with api_client(notes_app) as client:
         # action: send concurrent create requests

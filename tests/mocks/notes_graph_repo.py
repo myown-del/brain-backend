@@ -14,8 +14,8 @@ class DummyGraphNode:
     title: str
     is_note: bool = True
     represents_keyword: bool = False
-    
-    
+
+
 class DummyNotesGraphRepository(INotesGraphRepository):
     # Global state for testing
     _notes: dict[UUID, dict[UUID, DummyGraphNode]] = {}
@@ -28,16 +28,16 @@ class DummyNotesGraphRepository(INotesGraphRepository):
         if user_id not in self._notes:
             self._notes[user_id] = {}
         return self._notes[user_id]
-        
+
     def _get_user_links(self, user_id: UUID):
         if user_id not in self._links:
             self._links[user_id] = {}
         return self._links[user_id]
-    
+
     def _get_notes_by_title(self, user_id: UUID) -> dict[str, DummyGraphNode]:
         user_notes = self._get_user_notes(user_id)
         return {note.title: note for note in user_notes.values()}
-    
+
     def _collect_keywords(self, user_id: UUID) -> set[str]:
         user_links = self._get_user_links(user_id)
         keywords: set[str] = set()
@@ -47,11 +47,11 @@ class DummyNotesGraphRepository(INotesGraphRepository):
 
     async def upsert_note(self, note: Note):
         user_notes = self._get_user_notes(note.user_id)
-        
+
         old_title = None
         if note.id in user_notes:
             old_title = user_notes[note.id].title
-            
+
         user_notes[note.id] = DummyGraphNode(
             id=note.id,
             user_id=note.user_id,
@@ -59,7 +59,7 @@ class DummyNotesGraphRepository(INotesGraphRepository):
             is_note=True,
             represents_keyword=bool(note.represents_keyword_id),
         )
-        
+
         if old_title and old_title != note.title:
             user_links = self._get_user_links(note.user_id)
             if old_title in user_links:
@@ -93,7 +93,10 @@ class DummyNotesGraphRepository(INotesGraphRepository):
         return 0
 
     async def count_links_between_notes(
-        self, user_id: UUID, from_title: str, to_title: str,
+        self,
+        user_id: UUID,
+        from_title: str,
+        to_title: str,
     ) -> int:
         user_links = self._get_user_links(user_id)
         targets = user_links.get(from_title)
@@ -171,10 +174,9 @@ class DummyNotesGraphRepository(INotesGraphRepository):
         if query:
             query_lower = query.lower()
             seeds = [
-                node_id
-                for node_id, info in node_info.items()
+                node_id for node_id, info in node_info.items()
                 if query_lower in str(info.get("title", "")).lower()
-            ]
+            ] # fmt: skip
             if not seeds:
                 return GraphData(nodes=[], connections=[])
 
@@ -196,8 +198,9 @@ class DummyNotesGraphRepository(INotesGraphRepository):
                     queue.append(neighbor)
 
             candidate_nodes = {
-                node_id for node_id, dist in distances.items() if dist <= depth
-            }
+                node_id for node_id, dist in distances.items()
+                if dist <= depth
+            } # fmt: skip
         else:
             candidate_nodes = set(node_info.keys())
 
@@ -219,16 +222,8 @@ class DummyNotesGraphRepository(INotesGraphRepository):
                     id=node_id,
                     title=str(info["title"]),
                     kind=str(info["kind"]),
-                    represents_keyword=(
-                        info.get("represents_keyword")
-                        if info["kind"] == "note"
-                        else None
-                    ),
-                    has_keyword_note=(
-                        info.get("has_keyword_note")
-                        if info["kind"] == "keyword"
-                        else None
-                    ),
+                    represents_keyword=(info.get("represents_keyword") if info["kind"] == "note" else None),
+                    has_keyword_note=(info.get("has_keyword_note") if info["kind"] == "keyword" else None),
                 ),
             )
 
@@ -244,6 +239,6 @@ class DummyNotesGraphRepository(INotesGraphRepository):
         connections = [
             GraphConnection(from_id=f, to_id=t, kind=k)
             for f, t, k in connection_set
-        ]
+        ] # fmt: skip
 
         return GraphData(nodes=nodes, connections=connections)

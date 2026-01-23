@@ -14,13 +14,13 @@ async def test_export_notes():
     user_id = 123
     mock_user_interactor = AsyncMock()
     mock_notes_repo = AsyncMock()
-    
+
     interactor = ExportNotesInteractor(mock_user_interactor, mock_notes_repo)
-    
+
     # Mock data
     mock_user = Mock(id=uuid4(), telegram_id=user_id)
     mock_user_interactor.get_user_by_telegram_id.return_value = mock_user
-    
+
     note_id = uuid4()
     note_title = "Test Note"
     note = Note(
@@ -31,18 +31,17 @@ async def test_export_notes():
         represents_keyword_id=None,
     )
     mock_notes_repo.get_by_user_telegram_id.return_value = [note]
-    
+
     # Execute
     zip_bytes = await interactor.export_notes(user_id)
-    
+
     # Verify
     assert zip_bytes is not None
 
-    
     with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
         files = zf.namelist()
         assert "Test Note.json" in files
-        
+
         with zf.open("Test Note.json") as f:
             data = json.load(f)
             assert data["title"] == note_title

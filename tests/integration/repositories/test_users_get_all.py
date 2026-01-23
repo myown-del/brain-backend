@@ -26,10 +26,10 @@ async def test_users_repository_get_all(
     # But wait, create method in repo:
     # db_model = map_user_to_db(entity) -> self._session.add(db_model)
     # Let's just use the repo to create another user
-    
+
     # We need a fresh user with different content
     user2 = User(
-        id=user.id, # Logic needs uuid check, but let's rely on mapping
+        id=user.id,  # Logic needs uuid check, but let's rely on mapping
         telegram_id=999999,
         username="another_user",
         first_name="Another",
@@ -37,10 +37,11 @@ async def test_users_repository_get_all(
     )
     # Ideally should generate new ID
     from uuid import uuid4
+
     user2.id = uuid4()
-    
+
     await users_repository.create(user2)
-    
+
     all_users_after = await users_repository.get_all()
     assert len(all_users_after) == len(all_users) + 1
     assert any(u.id == user2.id for u in all_users_after)
