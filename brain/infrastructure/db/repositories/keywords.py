@@ -39,7 +39,7 @@ class KeywordsRepository(IKeywordsRepository):
 
     async def get_by_id(self, keyword_id: UUID) -> Keyword | None:
         result = await self._session.execute(
-            select(KeywordDB).where(KeywordDB.id == keyword_id)
+            select(KeywordDB).where(KeywordDB.id == keyword_id),
         )
         db_model = result.scalar()
         if not db_model:
@@ -54,7 +54,7 @@ class KeywordsRepository(IKeywordsRepository):
         result = await self._session.execute(
             select(KeywordDB)
             .where(KeywordDB.user_id == user_id)
-            .where(KeywordDB.name == name)
+            .where(KeywordDB.name == name),
         )
         db_model = result.scalar()
         if not db_model:
@@ -67,10 +67,10 @@ class KeywordsRepository(IKeywordsRepository):
             return
 
         stmt = insert(KeywordDB).values(
-            [{"id": uuid4(), "user_id": user_id, "name": name} for name in normalized]
+            [{"id": uuid4(), "user_id": user_id, "name": name} for name in normalized],
         )
         stmt = stmt.on_conflict_do_nothing(
-            index_elements=["user_id", "name"]
+            index_elements=["user_id", "name"],
         )
         await self._session.execute(stmt)
         await self._session.commit()
@@ -83,7 +83,7 @@ class KeywordsRepository(IKeywordsRepository):
     ) -> None:
         normalized = self._normalize(names)
         await self._session.execute(
-            delete(NoteKeywordDB).where(NoteKeywordDB.note_id == note_id)
+            delete(NoteKeywordDB).where(NoteKeywordDB.note_id == note_id),
         )
 
         if not normalized:
@@ -104,7 +104,7 @@ class KeywordsRepository(IKeywordsRepository):
             return
 
         insert_stmt = insert(NoteKeywordDB).values(
-            [{"note_id": note_id, "keyword_id": keyword_id} for keyword_id in keyword_ids]
+            [{"note_id": note_id, "keyword_id": keyword_id} for keyword_id in keyword_ids],
         )
         await self._session.execute(insert_stmt)
         await self._session.commit()
@@ -121,7 +121,7 @@ class KeywordsRepository(IKeywordsRepository):
 
     async def delete_note_keywords(self, note_id: UUID) -> None:
         await self._session.execute(
-            delete(NoteKeywordDB).where(NoteKeywordDB.note_id == note_id)
+            delete(NoteKeywordDB).where(NoteKeywordDB.note_id == note_id),
         )
         await self._session.commit()
 
@@ -136,12 +136,12 @@ class KeywordsRepository(IKeywordsRepository):
             .where(KeywordDB.name.in_(normalized))
             .where(
                 ~exists()
-                .where(NoteKeywordDB.keyword_id == KeywordDB.id)
+                .where(NoteKeywordDB.keyword_id == KeywordDB.id),
             )
             .where(
                 ~exists()
                 .where(NoteDB.user_id == user_id)
-                .where(NoteDB.represents_keyword_id == KeywordDB.id)
+                .where(NoteDB.represents_keyword_id == KeywordDB.id),
             )
         )
         await self._session.execute(stmt)

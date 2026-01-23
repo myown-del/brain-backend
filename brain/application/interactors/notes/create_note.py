@@ -30,9 +30,7 @@ class CreateNoteInteractor:
         self._keyword_sync_service = keyword_sync_service
 
     async def create_note(self, note_data: CreateNote) -> UUID:
-        user = await self._get_user_interactor.get_user_by_telegram_id(
-            note_data.by_user_telegram_id
-        )
+        user = await self._get_user_interactor.get_user_by_telegram_id(note_data.by_user_telegram_id)
 
         title = await self._note_title_service.resolve_create_title(
             user_id=user.id,

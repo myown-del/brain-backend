@@ -1,4 +1,4 @@
-.PHONY: venv sync start start-db start-background build test migration migrate
+.PHONY: venv sync start start-db start-background build test lint format migration migrate
 
 UV ?= uv
 
@@ -22,6 +22,12 @@ build:
 
 test:
 	$(UV) run pytest tests --disable-warnings -s
+
+lint:
+	$(UV) run ruff check .
+
+format:
+	$(UV) run ruff format .
 
 migration:
 	$(UV) run alembic revision --autogenerate

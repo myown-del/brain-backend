@@ -61,7 +61,7 @@ async def test_note_unique_by_title(
             by_user_telegram_id=user.telegram_id,
             title="Keyword",
             text="First",
-        )
+        ),
     )
     with pytest.raises(NoteTitleAlreadyExistsException):
         await create_interactor.create_note(
@@ -69,7 +69,7 @@ async def test_note_unique_by_title(
                 by_user_telegram_id=user.telegram_id,
                 title="Keyword",
                 text="Second",
-            )
+            ),
         )
 
     notes = await repo_hub.notes.get_by_user_telegram_id(user.telegram_id)

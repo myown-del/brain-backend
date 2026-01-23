@@ -50,7 +50,7 @@ async def test_handle_start_cmd_attaches_user_when_session(monkeypatch: pytest.M
     assert interactor.calls == [{"session_id": "abc", "telegram_id": 111}]
     assert enqueue_recorder.calls == [111]
     assert dialog_manager.start_calls == [
-        {"state": MainMenu.main_menu, "mode": StartMode.RESET_STACK}
+        {"state": MainMenu.main_menu, "mode": StartMode.RESET_STACK},
     ]
 
 
@@ -74,7 +74,7 @@ async def test_handle_start_cmd_skips_attach_without_session(monkeypatch: pytest
     assert container.get_calls == []
     assert enqueue_recorder.calls == [111]
     assert dialog_manager.start_calls == [
-        {"state": MainMenu.main_menu, "mode": StartMode.RESET_STACK}
+        {"state": MainMenu.main_menu, "mode": StartMode.RESET_STACK},
     ]
 
 
@@ -97,7 +97,7 @@ async def test_handle_start_cmd_skips_profile_picture_for_bot_user(monkeypatch: 
     # check: enqueue is skipped for bot users
     assert enqueue_recorder.calls == []
     assert dialog_manager.start_calls == [
-        {"state": MainMenu.main_menu, "mode": StartMode.RESET_STACK}
+        {"state": MainMenu.main_menu, "mode": StartMode.RESET_STACK},
     ]
 
 
@@ -113,7 +113,7 @@ async def test_handle_message_creates_note():
 
     # check: note created and reply sent
     assert interactor.calls == [
-        CreateNote(by_user_telegram_id=55, title=None, text="hello")
+        CreateNote(by_user_telegram_id=55, title=None, text="hello"),
     ]
     assert message.replies == ["Заметка сохранена"]
 

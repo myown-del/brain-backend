@@ -11,15 +11,11 @@ from brain.infrastructure.db.models.mixins import CreatedUpdatedMixin
 
 class NoteDB(Base, CreatedUpdatedMixin):
     __tablename__ = "notes"
-    __table_args__ = (
-        UniqueConstraint("user_id", "title", name="uq_notes_user_id_title"),
-    )
+    __table_args__ = (UniqueConstraint("user_id", "title", name="uq_notes_user_id_title"),)
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True)
     user_id: Mapped[UUID] = mapped_column(
-        Uuid,
-        ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
-        nullable=False
+        Uuid, ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"), nullable=False
     )
     title: Mapped[str] = mapped_column(String(length=255), nullable=False)
     text: Mapped[str | None] = mapped_column(Text, nullable=True)

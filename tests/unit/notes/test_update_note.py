@@ -76,7 +76,7 @@ async def test_update_note_with_text_updates_full_content(interactor, notes_repo
         title="Title",
         text=original_text,
         represents_keyword_id=uuid4(),
-        link_intervals=[]
+        link_intervals=[],
     )
     notes_repo.get_by_id.return_value = existing_note
     
@@ -110,7 +110,7 @@ async def test_update_note_with_patch_applies_correctly(interactor, notes_repo, 
         title="Title",
         text=original_text,
         represents_keyword_id=uuid4(),
-        link_intervals=[]
+        link_intervals=[],
     )
     notes_repo.get_by_id.return_value = existing_note
     
@@ -142,7 +142,7 @@ async def test_update_note_optimizes_sync_when_links_untouched(interactor, notes
         title="Title",
         text=original_text,
         represents_keyword_id=uuid4(),
-        link_intervals=[LinkInterval(6, 14)] # [[Link]]
+        link_intervals=[LinkInterval(6, 14)], # [[Link]]
     )
     notes_repo.get_by_id.return_value = existing_note
     
@@ -176,7 +176,7 @@ async def test_update_note_syncs_when_link_modified(interactor, notes_repo, keyw
         title="Title",
         text=original_text,
         represents_keyword_id=uuid4(),
-        link_intervals=[LinkInterval(6, 14)]
+        link_intervals=[LinkInterval(6, 14)],
     )
     notes_repo.get_by_id.return_value = existing_note
     
@@ -209,7 +209,7 @@ async def test_update_note_syncs_when_new_link_added(interactor, notes_repo, key
         title="Title",
         text=original_text,
         represents_keyword_id=uuid4(),
-        link_intervals=[] # Empty initially, so we need to force optimization check logic? 
+        link_intervals=[], # Empty initially, so we need to force optimization check logic? 
                          # Logic: if note.link_intervals and note_data.patch:
                          # If intervals are empty, logic skips!
                          # So if I add a link to a note with NO links, it defaults to Sync = True.
@@ -224,7 +224,7 @@ async def test_update_note_syncs_when_new_link_added(interactor, notes_repo, key
         title="Title",
         text=original_text,
         represents_keyword_id=uuid4(),
-        link_intervals=[LinkInterval(6, 13)] # [[Old]] len 7
+        link_intervals=[LinkInterval(6, 13)], # [[Old]] len 7
     )
     notes_repo.get_by_id.return_value = existing_note
     

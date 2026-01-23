@@ -28,7 +28,7 @@ async def test_note_update_requires_title(
             by_user_telegram_id=user.telegram_id,
             title="Alpha",
             text="Note",
-        )
+        ),
     )
     with pytest.raises(NoteTitleRequiredException):
         await update_interactor.update_note(
@@ -36,7 +36,7 @@ async def test_note_update_requires_title(
                 note_id=note_id,
                 title=None,
                 text="Note",
-            )
+            ),
         )
 
 
@@ -54,7 +54,7 @@ async def test_note_duplicate_title_conflict(
             by_user_telegram_id=user.telegram_id,
             title="Omega",
             text="Keyword note",
-        )
+        ),
     )
 
     note_id = await create_interactor.create_note(
@@ -62,7 +62,7 @@ async def test_note_duplicate_title_conflict(
             by_user_telegram_id=user.telegram_id,
             title="Sigma",
             text="Regular note",
-        )
+        ),
     )
 
     with pytest.raises(NoteTitleAlreadyExistsException):
@@ -71,7 +71,7 @@ async def test_note_duplicate_title_conflict(
                 note_id=note_id,
                 title="Omega",
                 text="Regular note",
-            )
+            ),
         )
 
 
@@ -166,7 +166,7 @@ async def test_note_update_patch(
         note_id=note_id,
         title="Patcher",
         text=None,
-        patch=patch_str
+        patch=patch_str,
     ))
     
     assert updated_note.text == "Hello patched"

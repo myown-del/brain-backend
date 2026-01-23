@@ -25,13 +25,10 @@ logger = logging.getLogger(__name__)
 async def on_startup(container: AsyncContainer, config: APIConfig):
     await taskiq_broker.startup()
     logger.info("Startup complete")
-    
+
 
 def create_app() -> FastAPI:
-    config = load_config(
-        config_class=Config,
-        env_file_path=".env"
-    )
+    config = load_config(config_class=Config, env_file_path=".env")
     setup_logging(config.logging_level)
     app = create_bare_app(config=config.api)
     container = make_async_container(
@@ -45,7 +42,7 @@ def create_app() -> FastAPI:
         TelegramInfrastructureProvider(),
         JwtProvider(),
         DispatcherProvider(),
-        context={Config: config}
+        context={Config: config},
     )
 
     fastapi_integration.setup_dishka(container=container, app=app)

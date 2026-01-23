@@ -11,9 +11,7 @@ from brain.infrastructure.db.models.mixins import CreatedUpdatedMixin
 
 class KeywordDB(Base, CreatedUpdatedMixin):
     __tablename__ = "keywords"
-    __table_args__ = (
-        UniqueConstraint("user_id", "name", name="uq_keywords_user_id_name"),
-    )
+    __table_args__ = (UniqueConstraint("user_id", "name", name="uq_keywords_user_id_name"),)
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True)
     user_id: Mapped[UUID] = mapped_column(

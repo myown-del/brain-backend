@@ -31,7 +31,6 @@ def extract_wikilinks(text: str) -> list[str]:
     return extract_link_targets(text)
 
 
-
 def extract_link_intervals(text: str) -> list[LinkInterval]:
     """
     Returns a list of LinkInterval(start, end) for every wikilink found.

@@ -8,7 +8,7 @@ from brain.application.abstractions.services.profile_picture_provider import (
 
 class MockProfilePictureProvider(IProfilePictureProvider):
     async def get_profile_picture_content(
-        self, telegram_id: int
+        self, telegram_id: int,
     ) -> ProfilePictureData | None:
         return None  # Return None by default for tests
 

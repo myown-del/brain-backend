@@ -23,14 +23,14 @@ class NoteKeywordSyncService:
         current_targets = extract_link_targets(note.text or "")
 
         await self._keywords_repo.replace_note_keywords(
-            note.id, note.user_id, current_targets
+            note_id=note.id,
+            user_id=note.user_id,
+            names=current_targets,
         )
 
         await self._notes_graph_repo.sync_connections(
-            note,
-            current_targets,
+            note=note,
+            link_targets=current_targets,
             previous_title=previous_state.title if previous_state else None,
-            previous_represents_keyword_id=(
-                previous_state.represents_keyword_id if previous_state else None
-            ),
+            previous_represents_keyword_id=(previous_state.represents_keyword_id if previous_state else None),
         )

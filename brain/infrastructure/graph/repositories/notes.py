@@ -146,9 +146,7 @@ class NotesGraphRepository(INotesGraphRepository):
             record = await result.single()
             return record["c"] if record else 0
 
-    async def count_links_between_notes(
-        self, user_id: UUID, from_title: str, to_title: str
-    ) -> int:
+    async def count_links_between_notes(self, user_id: UUID, from_title: str, to_title: str) -> int:
         async with self._driver.session(database=self._database) as session:
             result = await session.run(
                 """

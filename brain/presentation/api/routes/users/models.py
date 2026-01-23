@@ -4,7 +4,6 @@ from uuid import UUID
 from pydantic import BaseModel
 
 
-
 class ReadS3FileSchema(BaseModel):
     id: UUID
     object_name: str

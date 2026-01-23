@@ -78,38 +78,37 @@ class UpdateNoteInteractor:
                 # Fallback or error? For now let's error if patch fails.
                 raise ValueError("Failed to apply patch")
         elif note_data.text is not Unset:
-             note.text = note_data.text
+            note.text = note_data.text
 
         # Differential Update Optimization
         # Check if we can skip Neo4j sync
         should_sync_graph = True
-        
+
         # If we have previous link intervals, check if they are safe
         # We need diffs between OLD text and NEW text.
-        
+
         # If we just derived text from patch, we implicitly have diffs (from patch).
         # But get_diffs uses dmp which is what we want.
-        
+
         if note.link_intervals and note_data.patch and note_data.patch is not Unset:
-             diffs = get_diffs(previous_state.text or "", note.text or "")
-             touched_old = check_if_ranges_touched(
-                 len(previous_state.text or ""), 
-                 diffs, 
-                 previous_state.link_intervals
-             )
-             has_new_brackets = any(("[" in text or "]" in text) for op, text in diffs if op == 1)
-             
-             if not touched_old and not has_new_brackets:
-                 should_sync_graph = False
+            diffs = get_diffs(previous_state.text or "", note.text or "")
+            touched_old = check_if_ranges_touched(
+                old_text_len=len(previous_state.text or ""),
+                diffs=diffs,
+                old_link_intervals=previous_state.link_intervals,
+            )
+            has_new_brackets = any(("[" in text or "]" in text) for op, text in diffs if op == 1)
+
+            if not touched_old and not has_new_brackets:
+                should_sync_graph = False
 
         note.link_intervals = extract_link_intervals(note.text or "")
 
         await self._notes_repo.update(note)
         await self._notes_graph_repo.upsert_note(note)
-        
+
         if should_sync_graph:
             await self._keyword_sync_service.sync(note, previous_state=previous_state)
-
 
         previous_targets = extract_link_targets(previous_state.text or "")
         current_targets = extract_link_targets(note.text or "")
@@ -126,7 +125,7 @@ class UpdateNoteInteractor:
         removed_targets = [
             title for title in previous_cleanup_names
             if title not in set(current_cleanup_names)
-        ]
+        ]  # fmt: skip
         await self._keywords_repo.delete_unused_keywords(
             user_id=note.user_id,
             names=removed_targets,

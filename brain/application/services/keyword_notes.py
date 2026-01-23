@@ -21,9 +21,7 @@ class KeywordNoteService:
         keyword = await self._keywords_repo.get_by_user_and_name(user_id, name=title)
         if not keyword:
             await self._keywords_repo.ensure_keywords(user_id=user_id, names=[title])
-            keyword = await self._keywords_repo.get_by_user_and_name(
-                user_id, name=title
-            )
+            keyword = await self._keywords_repo.get_by_user_and_name(user_id, name=title)
 
         if not keyword:
             raise KeywordNotFoundException()

@@ -11,7 +11,5 @@ from brain.infrastructure.telegram.profile_picture_provider import (
 
 class TelegramInfrastructureProvider(Provider):
     @provide(scope=Scope.REQUEST, provides=IProfilePictureProvider)
-    async def get_telegram_profile_picture_provider(
-        self, bot: Bot
-    ) -> TelegramProfilePictureProvider:
+    async def get_telegram_profile_picture_provider(self, bot: Bot) -> TelegramProfilePictureProvider:
         return TelegramProfilePictureProvider(bot=bot)

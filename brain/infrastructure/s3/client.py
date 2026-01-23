@@ -13,7 +13,7 @@ class S3Client:
             aws_access_key_id=self.config.access_key_id,
             aws_secret_access_key=self.config.secret_access_key,
             region_name=self.config.region_name,
-            config=BotoConfig(signature_version='s3v4')
+            config=BotoConfig(signature_version='s3v4'),
         )
         self.bucket = self.config.bucket_name
 
@@ -26,7 +26,7 @@ class S3Client:
             Bucket=self.bucket,
             Key=object_name,
             Body=file_content,
-            **extra_args
+            **extra_args,
         )
         
         return f"{self.config.endpoint_url}/{self.bucket}/{object_name}"

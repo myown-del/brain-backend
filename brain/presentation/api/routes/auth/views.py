@@ -57,7 +57,7 @@ async def fake_auth(
     except JwtTokenExpiredException:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token expired"
+            detail="Token expired",
         )
 
     return JwtTokenSchema.model_validate(asdict(token))
@@ -73,12 +73,12 @@ async def refresh_token(
     except JwtTokenExpiredException:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token expired"
+            detail="Token expired",
         )
     except JwtTokenInvalidException:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token"
+            detail="Invalid token",
         )
 
     return JwtTokenSchema.model_validate(asdict(token))
@@ -90,7 +90,7 @@ async def create_tg_bot_auth_session(
 ):
     session = await interactor.create_session()
     return TelegramBotAuthSessionSchema.model_validate(
-        _serialize_tg_bot_auth_session(session)
+        _serialize_tg_bot_auth_session(session),
     )
 
 
@@ -101,7 +101,7 @@ async def get_tg_bot_auth_session(
 ):
     try:
         session_data = await interactor.get_session_with_tokens(
-            session_id=session_id
+            session_id=session_id,
         )
     except TelegramBotAuthSessionNotFoundException:
         raise HTTPException(
@@ -111,7 +111,7 @@ async def get_tg_bot_auth_session(
     payload = _serialize_tg_bot_auth_session(session_data.session)
     if session_data.tokens:
         payload["jwt_token"] = JwtTokenSchema.model_validate(
-            asdict(session_data.tokens)
+            asdict(session_data.tokens),
         )
     return TelegramBotAuthSessionSchema.model_validate(payload)
 
@@ -122,13 +122,13 @@ def get_router() -> APIRouter:
         path="/fake",
         endpoint=fake_auth,
         methods=["POST"],
-        response_model=JwtTokenSchema
+        response_model=JwtTokenSchema,
     )
     router.add_api_route(
         path="/tokens/refresh",
         endpoint=refresh_token,
         methods=["POST"],
-        response_model=JwtTokenSchema
+        response_model=JwtTokenSchema,
     )
     router.add_api_route(
         path="/tg-bot/sessions",

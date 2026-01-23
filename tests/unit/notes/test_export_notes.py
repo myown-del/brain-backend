@@ -28,7 +28,7 @@ async def test_export_notes():
         user_id=mock_user.id,
         title=note_title,
         text="Content",
-        represents_keyword_id=None
+        represents_keyword_id=None,
     )
     mock_notes_repo.get_by_user_telegram_id.return_value = [note]
     

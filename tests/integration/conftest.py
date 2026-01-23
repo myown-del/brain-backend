@@ -39,7 +39,7 @@ async def alembic_config(dishka: AsyncContainer) -> AlembicConfig:
 async def dishka():
     config = load_config(
         config_class=Config,
-        env_file_path="tests/.env"
+        env_file_path="tests/.env",
     )
     container = make_async_container(
         ConfigProvider(),
@@ -52,7 +52,7 @@ async def dishka():
         MockBotProvider(),
         InteractorProvider(),
         JwtProvider(),
-        context={Config: config}
+        context={Config: config},
     )
     yield container
     await container.close()

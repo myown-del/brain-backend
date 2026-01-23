@@ -10,6 +10,4 @@ class GetNoteCreationStatsInteractor:
         self,
         user_telegram_id: int,
     ) -> list[NoteCreationStat]:
-        return await self._notes_repo.get_note_creation_stats_by_user_telegram_id(
-            user_telegram_id
-        )
+        return await self._notes_repo.get_note_creation_stats_by_user_telegram_id(user_telegram_id)

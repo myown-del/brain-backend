@@ -23,17 +23,12 @@ async def setup_tasks(container: AsyncContainer, config: APIConfig):
     webhook_url = f"{config.external_host}/api/tg-bot/webhook"
 
     bot = await container.get(Bot)
-    await bot.set_webhook(
-        url=webhook_url
-    )
+    await bot.set_webhook(url=webhook_url)
     logger.info(f"Binded bot webhooks to url: {webhook_url}")
 
 
 async def main():
-    config = load_config(
-        config_class=Config,
-        env_file_path=".env"
-    )
+    config = load_config(config_class=Config, env_file_path=".env")
     setup_logging(config.logging_level)
     container = make_async_container(
         ConfigProvider(),
@@ -46,7 +41,7 @@ async def main():
         TelegramInfrastructureProvider(),
         JwtProvider(),
         DispatcherProvider(),
-        context={Config: config}
+        context={Config: config},
     )
 
     await setup_tasks(container, config.api)

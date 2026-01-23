@@ -18,6 +18,4 @@ class JwtRefreshTokenDB(Base):
     )
     token: Mapped[str] = mapped_column(String(length=1024), nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())

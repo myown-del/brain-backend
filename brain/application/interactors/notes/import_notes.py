@@ -34,16 +34,14 @@ class ImportNotesInteractor:
         self._keyword_sync_service = keyword_sync_service
 
     async def import_notes(self, user_telegram_id: int, zip_bytes: bytes) -> None:
-        user = await self._get_user_interactor.get_user_by_telegram_id(
-            user_telegram_id
-        )
+        user = await self._get_user_interactor.get_user_by_telegram_id(user_telegram_id)
 
         try:
             with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zip_file:
                 for filename in zip_file.namelist():
                     if not filename.endswith(".json"):
                         continue
-                    
+
                     with zip_file.open(filename) as f:
                         try:
                             note_data = json.load(f)
@@ -59,7 +57,7 @@ class ImportNotesInteractor:
         text = note_data.get("text")
         # We ignore ID from import, generate new one
         # We also ignore user_id from import, use current user
-        
+
         if not title:
             return
 
@@ -81,7 +79,7 @@ class ImportNotesInteractor:
                 created_at = datetime.fromisoformat(note_data["created_at"])
             except ValueError:
                 pass
-        
+
         updated_at = None
         if note_data.get("updated_at"):
             try:

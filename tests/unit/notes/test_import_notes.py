@@ -25,7 +25,7 @@ async def test_import_notes():
         mock_graph_repo,
         mock_keyword_service,
         mock_title_service,
-        mock_sync_service
+        mock_sync_service,
     )
     
     mock_user = Mock(id=uuid4(), telegram_id=user_id)
@@ -75,7 +75,7 @@ async def test_import_skip_existing():
         mock_graph_repo,
         mock_keyword_service,
         mock_title_service,
-        mock_sync_service
+        mock_sync_service,
     )
     
     mock_user = Mock(id=uuid4(), telegram_id=user_id)

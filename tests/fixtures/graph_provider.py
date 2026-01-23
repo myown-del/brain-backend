@@ -27,7 +27,7 @@ class TestGraphProvider(Provider):
 
     @provide(scope=Scope.REQUEST, provides=INotesGraphRepository)
     def get_notes_graph_repo(
-        self, driver: AsyncDriver, config: INeo4jConfig
+        self, driver: AsyncDriver, config: INeo4jConfig,
     ) -> NotesGraphRepository:
         return NotesGraphRepository(driver=driver, database=config.database)
 

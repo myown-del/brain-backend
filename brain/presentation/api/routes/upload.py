@@ -28,6 +28,6 @@ def get_router() -> APIRouter:
         path="/image",
         endpoint=upload_image,
         methods=["POST"],
-        status_code=status.HTTP_200_OK
+        status_code=status.HTTP_200_OK,
     )
     return router

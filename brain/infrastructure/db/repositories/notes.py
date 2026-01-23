@@ -90,7 +90,7 @@ class NotesRepository(INotesRepository):
             stmt = stmt.where(NoteDB.title == query)
         else:
             stmt = stmt.where(
-                func.lower(func.trim(NoteDB.title)).like(f"%{normalized.lower()}%")
+                func.lower(func.trim(NoteDB.title)).like(f"%{normalized.lower()}%"),
             )
 
         stmt = stmt.order_by(NoteDB.updated_at.desc())
@@ -213,7 +213,7 @@ class NotesRepository(INotesRepository):
                 WikilinkSuggestion(
                     title=trimmed,
                     represents_keyword=True,
-                )
+                ),
             )
 
         missing_note_stmt = (
@@ -226,7 +226,7 @@ class NotesRepository(INotesRepository):
                 ~exists()
                 .where(NoteDB.user_id == KeywordDB.user_id)
                 .where(NoteDB.title == KeywordDB.name)
-                .where(NoteDB.represents_keyword_id.isnot(None))
+                .where(NoteDB.represents_keyword_id.isnot(None)),
             )
             .order_by(KeywordDB.name.asc())
         )
@@ -243,7 +243,7 @@ class NotesRepository(INotesRepository):
                 WikilinkSuggestion(
                     title=trimmed,
                     represents_keyword=False,
-                )
+                ),
             )
         return suggestions
 
@@ -271,6 +271,6 @@ class NotesRepository(INotesRepository):
                 NoteCreationStat(
                     date=created_at,
                     count=int(count or 0),
-                )
+                ),
             )
         return stats

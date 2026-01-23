@@ -49,7 +49,7 @@ async def test_refresh_tokens_rotates_refresh_token(
     original_tokens = await auth_interactor.login(user.telegram_id)
     original_record = await jwt_repo.get_by_token(original_tokens.refresh_token)
     rotated_tokens = await auth_interactor.refresh_tokens(
-        original_tokens.refresh_token
+        original_tokens.refresh_token,
     )
 
     # check: old token is removed and new token is stored
@@ -92,7 +92,7 @@ async def test_refresh_tokens_rejects_expired_record(
         payload={
             "user_id": user.id,
             "exp": datetime.utcnow() + timedelta(hours=1),
-        }
+        },
     )
     expired_record = JwtRefreshToken(
         id=uuid4(),

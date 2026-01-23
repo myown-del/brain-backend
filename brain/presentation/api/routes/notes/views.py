@@ -44,62 +44,53 @@ from brain.presentation.api.routes.notes.models import (
 
 @inject
 async def get_notes(
-        interactor: FromDishka[GetNotesInteractor],
-        from_date: datetime | None = Query(None),
-        to_date: datetime | None = Query(None),
-        user: User = Depends(get_user_from_request),
+    interactor: FromDishka[GetNotesInteractor],
+    from_date: datetime | None = Query(None),
+    to_date: datetime | None = Query(None),
+    user: User = Depends(get_user_from_request),
 ):
     notes = await interactor.get_notes(
         user.telegram_id,
         from_date=from_date,
         to_date=to_date,
     )
-    return [
-        map_note_to_read_schema(note)
-        for note in notes
-    ]
+    return [map_note_to_read_schema(note) for note in notes]
 
 
 @inject
 async def get_wikilink_suggestions(
-        interactor: FromDishka[SearchWikilinkSuggestionsInteractor],
-        query: str = Query(..., min_length=1),
-        user: User = Depends(get_user_from_request),
+    interactor: FromDishka[SearchWikilinkSuggestionsInteractor],
+    query: str = Query(..., min_length=1),
+    user: User = Depends(get_user_from_request),
 ):
     suggestions = await interactor.search_wikilink_suggestions(
         user_id=user.id,
         query=query,
     )
-    return [
-        map_wikilink_suggestion_to_schema(suggestion)
-        for suggestion in suggestions
-    ]
+    return [map_wikilink_suggestion_to_schema(suggestion) for suggestion in suggestions]
 
 
 @inject
 async def search_notes_by_title(
-        interactor: FromDishka[SearchNotesByTitleInteractor],
-        query: str = Query(..., min_length=1),
-        exact_match: bool = Query(False),
-        user: User = Depends(get_user_from_request),
+    interactor: FromDishka[SearchNotesByTitleInteractor],
+    query: str = Query(..., min_length=1),
+    exact_match: bool = Query(False),
+    user: User = Depends(get_user_from_request),
 ):
     notes = await interactor.search(
         user_id=user.id,
         query=query,
         exact_match=exact_match,
     )
-    return [
-        map_note_to_read_schema(note)
-        for note in notes
-    ]
+    return [map_note_to_read_schema(note) for note in notes]
 
 
 @inject
 async def create_note(
-        create_interactor: FromDishka[CreateNoteInteractor],
-        get_note_interactor: FromDishka[GetNoteInteractor],
-        note: CreateNoteSchema,
-        user: User = Depends(get_user_from_request),
+    create_interactor: FromDishka[CreateNoteInteractor],
+    get_note_interactor: FromDishka[GetNoteInteractor],
+    note: CreateNoteSchema,
+    user: User = Depends(get_user_from_request),
 ):
     data = map_create_schema_to_dto(note, user)
     try:
@@ -125,17 +116,14 @@ async def create_note(
 
 @inject
 async def delete_note(
-        get_note_interactor: FromDishka[GetNoteInteractor],
-        delete_interactor: FromDishka[DeleteNoteInteractor],
-        note_id: UUID,
-        user: User = Depends(get_user_from_request),
+    get_note_interactor: FromDishka[GetNoteInteractor],
+    delete_interactor: FromDishka[DeleteNoteInteractor],
+    note_id: UUID,
+    user: User = Depends(get_user_from_request),
 ):
     note = await get_note_interactor.get_note_by_id(note_id)
     if not note:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Note not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note not found")
 
     if note.user_id != user.id:
         raise HTTPException(
@@ -146,26 +134,20 @@ async def delete_note(
     try:
         await delete_interactor.delete_note(note_id)
     except NoteNotFoundException:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Note not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note not found")
 
 
 @inject
 async def update_note(
-        get_note_interactor: FromDishka[GetNoteInteractor],
-        update_interactor: FromDishka[UpdateNoteInteractor],
-        note_id: UUID,
-        note: UpdateNoteSchema,
-        user: User = Depends(get_user_from_request),
+    get_note_interactor: FromDishka[GetNoteInteractor],
+    update_interactor: FromDishka[UpdateNoteInteractor],
+    note_id: UUID,
+    note: UpdateNoteSchema,
+    user: User = Depends(get_user_from_request),
 ):
     existing_note = await get_note_interactor.get_note_by_id(note_id)
     if not existing_note:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Note not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note not found")
 
     if existing_note.user_id != user.id:
         raise HTTPException(
@@ -178,10 +160,7 @@ async def update_note(
     try:
         updated_note = await update_interactor.update_note(data)
     except NoteNotFoundException:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Note not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note not found")
     except NoteTitleRequiredException:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -203,8 +182,8 @@ async def update_note(
 
 @inject
 async def export_notes(
-        interactor: FromDishka[ExportNotesInteractor],
-        user: User = Depends(get_user_from_request),
+    interactor: FromDishka[ExportNotesInteractor],
+    user: User = Depends(get_user_from_request),
 ):
     zip_bytes = await interactor.export_notes(user.telegram_id)
     return Response(
@@ -216,9 +195,9 @@ async def export_notes(
 
 @inject
 async def import_notes(
-        interactor: FromDishka[ImportNotesInteractor],
-        file: UploadFile = File(...),
-        user: User = Depends(get_user_from_request),
+    interactor: FromDishka[ImportNotesInteractor],
+    file: UploadFile = File(...),
+    user: User = Depends(get_user_from_request),
 ):
     if not file.filename.endswith(".zip"):
         raise HTTPException(status_code=400, detail="File must be a .zip extension")
@@ -234,44 +213,41 @@ async def import_notes(
 
 @inject
 async def get_note_creation_stats(
-        interactor: FromDishka[GetNoteCreationStatsInteractor],
-        user: User = Depends(get_user_from_request),
+    interactor: FromDishka[GetNoteCreationStatsInteractor],
+    user: User = Depends(get_user_from_request),
 ):
     stats = await interactor.get_stats(user.telegram_id)
-    return [
-        map_note_creation_stat_to_schema(stat)
-        for stat in stats
-    ]
+    return [map_note_creation_stat_to_schema(stat) for stat in stats]
 
 
 def get_router() -> APIRouter:
-    router = APIRouter(prefix='/notes')
+    router = APIRouter(prefix="/notes")
     router.add_api_route(
-        path='',
+        path="",
         endpoint=get_notes,
         methods=["GET"],
         response_model=list[ReadNoteSchema],
         summary="Get user notes",
-        status_code=status.HTTP_200_OK
+        status_code=status.HTTP_200_OK,
     )
     router.add_api_route(
-        path='/wikilink-suggestions',
+        path="/wikilink-suggestions",
         endpoint=get_wikilink_suggestions,
         methods=["GET"],
         response_model=list[WikilinkSuggestionSchema],
         summary="Search wikilink suggestions",
-        status_code=status.HTTP_200_OK
+        status_code=status.HTTP_200_OK,
     )
     router.add_api_route(
-        path='/search/by-title',
+        path="/search/by-title",
         endpoint=search_notes_by_title,
         methods=["GET"],
         response_model=list[ReadNoteSchema],
         summary="Search notes by title",
-        status_code=status.HTTP_200_OK
+        status_code=status.HTTP_200_OK,
     )
     router.add_api_route(
-        path='/creation-stats',
+        path="/creation-stats",
         endpoint=get_note_creation_stats,
         methods=["GET"],
         response_model=list[NoteCreationStatSchema],
@@ -279,37 +255,37 @@ def get_router() -> APIRouter:
         status_code=status.HTTP_200_OK,
     )
     router.add_api_route(
-        path='',
+        path="",
         endpoint=create_note,
         methods=["POST"],
         response_model=ReadNoteSchema,
         summary="Create note",
-        status_code=status.HTTP_201_CREATED
+        status_code=status.HTTP_201_CREATED,
     )
     router.add_api_route(
-        path='/{note_id}',
+        path="/{note_id}",
         endpoint=delete_note,
         methods=["DELETE"],
         summary="Delete note",
-        status_code=status.HTTP_204_NO_CONTENT
+        status_code=status.HTTP_204_NO_CONTENT,
     )
     router.add_api_route(
-        path='/{note_id}',
+        path="/{note_id}",
         endpoint=update_note,
         methods=["PATCH"],
         response_model=ReadNoteSchema,
         summary="Update note",
-        status_code=status.HTTP_200_OK
+        status_code=status.HTTP_200_OK,
     )
     router.add_api_route(
-        path='/export',
+        path="/export",
         endpoint=export_notes,
         methods=["GET"],
         summary="Export notes",
         status_code=status.HTTP_200_OK,
     )
     router.add_api_route(
-        path='/import',
+        path="/import",
         endpoint=import_notes,
         methods=["POST"],
         summary="Import notes",

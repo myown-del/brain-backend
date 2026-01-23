@@ -35,7 +35,7 @@ class JwtService(TokenVerifier):
         expires_at = payload.get("exp")
         if expires_at is None:
             expires_at = datetime.utcnow() + timedelta(
-                seconds=self._access_token_lifetime
+                seconds=self._access_token_lifetime,
             )
             payload["exp"] = expires_at
 
@@ -43,11 +43,11 @@ class JwtService(TokenVerifier):
             payload=payload,
             key=self._secret_key,
             algorithm=self._algorithm,
-            json_encoder=UUIDEncoder
+            json_encoder=UUIDEncoder,
         )
         return JwtAccessToken(
             access_token=encoded_jwt,
-            expires_at=expires_at
+            expires_at=expires_at,
         )
 
     def decode_token(self, token: str) -> dict:
@@ -55,7 +55,7 @@ class JwtService(TokenVerifier):
             return jwt.decode(
                 jwt=token,
                 key=self._secret_key,
-                algorithms=[self._algorithm]
+                algorithms=[self._algorithm],
             )
         except ExpiredSignatureError as exc:
             raise TokenExpiredError() from exc

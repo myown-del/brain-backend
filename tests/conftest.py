@@ -28,7 +28,7 @@ def event_loop():
 def configure_logging() -> None:
     config = load_config(
         config_class=Config,
-        env_file_path="tests/.env"
+        env_file_path="tests/.env",
     )
     setup_logging(config.logging_level)
 
@@ -40,7 +40,7 @@ async def dishka():
 
     config = load_config(
         config_class=Config,
-        env_file_path="tests/.env"
+        env_file_path="tests/.env",
     )
     container = make_async_container(
         ConfigProvider(),
@@ -49,7 +49,7 @@ async def dishka():
         TestGraphProvider(),
         InteractorProvider(),
         JwtProvider(),
-        context={Config: config}
+        context={Config: config},
     )
     yield container
     await container.close()

@@ -93,7 +93,7 @@ class DummyNotesGraphRepository(INotesGraphRepository):
         return 0
 
     async def count_links_between_notes(
-        self, user_id: UUID, from_title: str, to_title: str
+        self, user_id: UUID, from_title: str, to_title: str,
     ) -> int:
         user_links = self._get_user_links(user_id)
         targets = user_links.get(from_title)
@@ -229,7 +229,7 @@ class DummyNotesGraphRepository(INotesGraphRepository):
                         if info["kind"] == "keyword"
                         else None
                     ),
-                )
+                ),
             )
 
         connection_set: set[tuple[str, str, str]] = set()

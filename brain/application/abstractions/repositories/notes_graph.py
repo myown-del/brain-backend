@@ -30,9 +30,7 @@ class INotesGraphRepository(Protocol):
         raise NotImplementedError
 
     @abstractmethod
-    async def count_links_between_notes(
-        self, user_id: UUID, from_title: str, to_title: str
-    ) -> int:
+    async def count_links_between_notes(self, user_id: UUID, from_title: str, to_title: str) -> int:
         raise NotImplementedError
 
     @abstractmethod

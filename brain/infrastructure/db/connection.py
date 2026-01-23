@@ -10,6 +10,8 @@ def create_engine(config: IDatabaseConfig) -> AsyncEngine:
 
 def create_session_maker(engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:
     pool: async_sessionmaker[AsyncSession] = async_sessionmaker(
-        bind=engine, expire_on_commit=False, autoflush=False
+        bind=engine,
+        expire_on_commit=False, 
+        autoflush=False,
     )
     return pool

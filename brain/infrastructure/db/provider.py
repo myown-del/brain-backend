@@ -44,24 +44,14 @@ class DatabaseProvider(Provider):
         return create_session_maker(engine)
 
     @provide(scope=Scope.REQUEST)
-    async def get_session(
-            self, pool: async_sessionmaker[AsyncSession]
-    ) -> AsyncIterable[AsyncSession]:
+    async def get_session(self, pool: async_sessionmaker[AsyncSession]) -> AsyncIterable[AsyncSession]:
         async with pool() as session:
             yield session
 
-    users_repository = provide(
-        UsersRepository, scope=Scope.REQUEST, provides=IUsersRepository
-    )
-    notes_repository = provide(
-        NotesRepository, scope=Scope.REQUEST, provides=INotesRepository
-    )
-    keywords_repository = provide(
-        KeywordsRepository, scope=Scope.REQUEST, provides=IKeywordsRepository
-    )
-    s3_files_repository = provide(
-        S3FilesRepository, scope=Scope.REQUEST, provides=IS3FilesRepository
-    )
+    users_repository = provide(UsersRepository, scope=Scope.REQUEST, provides=IUsersRepository)
+    notes_repository = provide(NotesRepository, scope=Scope.REQUEST, provides=INotesRepository)
+    keywords_repository = provide(KeywordsRepository, scope=Scope.REQUEST, provides=IKeywordsRepository)
+    s3_files_repository = provide(S3FilesRepository, scope=Scope.REQUEST, provides=IS3FilesRepository)
     tg_bot_auth_repository = provide(
         TelegramBotAuthSessionsRepository,
         scope=Scope.REQUEST,
@@ -72,6 +62,4 @@ class DatabaseProvider(Provider):
         scope=Scope.REQUEST,
         provides=IJwtRefreshTokensRepository,
     )
-    hub_repository = provide(
-        RepositoryHub, scope=Scope.REQUEST
-    )
+    hub_repository = provide(RepositoryHub, scope=Scope.REQUEST)

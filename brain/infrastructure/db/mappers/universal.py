@@ -6,9 +6,7 @@ from brain.domain.entities.common import EntityT
 from brain.infrastructure.db.models.base import SqlAlchemyModelT
 
 
-def from_entity_to_db(
-    entity: EntityT, db_cls: Type[SqlAlchemyModelT]
-) -> SqlAlchemyModelT:
+def from_entity_to_db(entity: EntityT, db_cls: Type[SqlAlchemyModelT]) -> SqlAlchemyModelT:
     source_cls = type(entity)
     converter = get_converter(source_cls, db_cls)
     try:

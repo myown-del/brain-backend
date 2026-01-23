@@ -9,9 +9,7 @@ class ProfilePictureData:
 
 
 class IProfilePictureProvider(Protocol):
-    async def get_profile_picture_content(
-        self, telegram_id: int
-    ) -> ProfilePictureData | None:
+    async def get_profile_picture_content(self, telegram_id: int) -> ProfilePictureData | None:
         """
         Get user profile picture content and content type.
         Returns:

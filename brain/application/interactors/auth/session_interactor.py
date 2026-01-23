@@ -50,9 +50,7 @@ class TelegramBotAuthSessionInteractor:
         return session
 
     async def attach_user_to_session(self, session_id: str, telegram_id: int) -> bool:
-        refresh_token = await self._auth_interactor.issue_refresh_token_for_telegram_id(
-            telegram_id
-        )
+        refresh_token = await self._auth_interactor.issue_refresh_token_for_telegram_id(telegram_id)
         updated = await self._sessions_repo.attach_user_if_empty(
             session_id=session_id,
             telegram_id=telegram_id,
@@ -62,14 +60,10 @@ class TelegramBotAuthSessionInteractor:
             await self._auth_interactor.revoke_refresh_token(refresh_token.id)
         return updated
 
-    async def get_session_with_tokens(
-        self, session_id: str
-    ) -> TelegramBotAuthSessionTokens:
+    async def get_session_with_tokens(self, session_id: str) -> TelegramBotAuthSessionTokens:
         session = await self.get_session(session_id)
         if not session.jwt_token_id:
             return TelegramBotAuthSessionTokens(session=session, tokens=None)
 
-        tokens = await self._auth_interactor.build_tokens_for_refresh_token_id(
-            session.jwt_token_id
-        )
+        tokens = await self._auth_interactor.build_tokens_for_refresh_token_id(session.jwt_token_id)
         return TelegramBotAuthSessionTokens(session=session, tokens=tokens)

@@ -18,9 +18,7 @@ class ExportNotesInteractor:
         self._notes_repo = notes_repo
 
     async def export_notes(self, user_telegram_id: int) -> bytes:
-        user = await self._get_user_interactor.get_user_by_telegram_id(
-            user_telegram_id
-        )
+        user = await self._get_user_interactor.get_user_by_telegram_id(user_telegram_id)
         notes = await self._notes_repo.get_by_user_telegram_id(user_telegram_id)
 
         zip_buffer = io.BytesIO()
@@ -31,7 +29,9 @@ class ExportNotesInteractor:
                 # Serialize UUIDs and datetimes
                 note_dict["id"] = str(note_dict["id"])
                 note_dict["user_id"] = str(note_dict["user_id"])
-                note_dict["represents_keyword_id"] = str(note_dict["represents_keyword_id"]) if note_dict["represents_keyword_id"] else None
+                note_dict["represents_keyword_id"] = (
+                    str(note_dict["represents_keyword_id"]) if note_dict["represents_keyword_id"] else None
+                )
                 if note_dict["created_at"]:
                     note_dict["created_at"] = note_dict["created_at"].isoformat()
                 if note_dict["updated_at"]:

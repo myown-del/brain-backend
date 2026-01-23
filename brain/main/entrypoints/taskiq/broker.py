@@ -49,7 +49,7 @@ def setup_broker() -> None:
         TelegramInfrastructureProvider(),
         JwtProvider(),
         DispatcherProvider(),
-        context={Config: config}
+        context={Config: config},
     )
     setup_dishka(container=container, broker=broker)
 

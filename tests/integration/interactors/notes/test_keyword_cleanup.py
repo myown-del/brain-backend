@@ -23,30 +23,30 @@ async def test_keywords_deleted_when_last_link_removed(
             by_user_telegram_id=user.telegram_id,
             title="First",
             text="See [[Omega]]",
-        )
+        ),
     )
     second_note_id = await create_interactor.create_note(
         CreateNote(
             by_user_telegram_id=user.telegram_id,
             title="Second",
             text="Linking [[Omega]] too",
-        )
+        ),
     )
 
     result = await session.execute(
-        select(KeywordDB).where(KeywordDB.user_id == user.id, KeywordDB.name == "Omega")
+        select(KeywordDB).where(KeywordDB.user_id == user.id, KeywordDB.name == "Omega"),
     )
     assert result.scalar() is not None
 
     await delete_interactor.delete_note(first_note_id)
     result = await session.execute(
-        select(KeywordDB).where(KeywordDB.user_id == user.id, KeywordDB.name == "Omega")
+        select(KeywordDB).where(KeywordDB.user_id == user.id, KeywordDB.name == "Omega"),
     )
     assert result.scalar() is not None
 
     await delete_interactor.delete_note(second_note_id)
     result = await session.execute(
-        select(KeywordDB).where(KeywordDB.user_id == user.id, KeywordDB.name == "Omega")
+        select(KeywordDB).where(KeywordDB.user_id == user.id, KeywordDB.name == "Omega"),
     )
     assert result.scalar() is None
 
@@ -65,7 +65,7 @@ async def test_keyword_note_creates_keyword_without_link(
             by_user_telegram_id=user.telegram_id,
             title="Atlas",
             text="No links here",
-        )
+        ),
     )
 
     keyword_db = (
@@ -73,7 +73,7 @@ async def test_keyword_note_creates_keyword_without_link(
             select(KeywordDB).where(
                 KeywordDB.user_id == user.id,
                 KeywordDB.name == "Atlas",
-            )
+            ),
         )
     ).scalar()
     assert keyword_db is not None
@@ -83,7 +83,7 @@ async def test_keyword_note_creates_keyword_without_link(
             select(NoteKeywordDB).where(
                 NoteKeywordDB.note_id == note_id,
                 NoteKeywordDB.keyword_id == keyword_db.id,
-            )
+            ),
         )
     ).scalar()
     assert link is None
@@ -95,7 +95,7 @@ async def test_keyword_note_creates_keyword_without_link(
             select(KeywordDB).where(
                 KeywordDB.user_id == user.id,
                 KeywordDB.name == "Atlas",
-            )
+            ),
         )
     ).scalar()
     assert keyword_after is None

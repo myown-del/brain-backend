@@ -15,14 +15,14 @@ def client(event_loop):
     mock_config.api = APIConfig(
         internal_host="0.0.0.0",
         external_host="localhost",
-        port=8080
+        port=8080,
     )
     mock_config.s3 = S3Config(
         external_host="http://localhost:9000",
         endpoint_url="http://test:9000",
         access_key_id="test",
         secret_access_key="test",
-        bucket_name="test-bucket"
+        bucket_name="test-bucket",
     )
     
     # Mock S3Client

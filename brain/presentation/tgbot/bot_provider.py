@@ -14,7 +14,7 @@ class BotProvider(Provider):
         bot = Bot(
             token=bot_config.token,
             default=DefaultBotProperties(
-                parse_mode=ParseMode.HTML, allow_sending_without_reply=True
+                parse_mode=ParseMode.HTML, allow_sending_without_reply=True,
             ),
         )
         return bot

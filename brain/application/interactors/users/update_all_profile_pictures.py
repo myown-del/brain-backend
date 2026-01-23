@@ -22,9 +22,7 @@ class UpdateAllUsersProfilePicturesInteractor:
         users = await self._users_repo.get_all()
         for user in users:
             try:
-                result = await self._profile_picture_provider.get_profile_picture_content(
-                    user.telegram_id
-                )
+                result = await self._profile_picture_provider.get_profile_picture_content(user.telegram_id)
                 if not result:
                     continue
 

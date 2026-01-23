@@ -5,8 +5,8 @@ from pydantic import BaseModel
 
 
 class GraphNodeKindEnum(str, Enum):
-    NOTE = 'note'
-    KEYWORD = 'keyword'
+    NOTE = "note"
+    KEYWORD = "keyword"
 
 
 class GraphNodeNoteSchema(BaseModel):

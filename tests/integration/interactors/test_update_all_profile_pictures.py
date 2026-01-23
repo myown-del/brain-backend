@@ -28,7 +28,7 @@ async def test_update_all_profile_pictures(
     with patch.object(
         MockProfilePictureProvider, 
         'get_profile_picture_content', 
-        new_callable=AsyncMock
+        new_callable=AsyncMock,
     ) as mock_get:
         mock_get.return_value = ProfilePictureData(content=b"fake_image_content", content_type="image/png")
         

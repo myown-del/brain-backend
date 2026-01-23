@@ -31,7 +31,7 @@ def get_diffs(text1: str, text2: str) -> list[tuple[int, int]]:
 def check_if_ranges_touched(
     old_text_len: int,
     diffs: list[tuple[int, str]],
-    protected_ranges: list[LinkInterval]
+    protected_ranges: list[LinkInterval],
 ) -> bool:
     """
     Checks if any of the diffs overlap with the protected ranges in the **old** text.

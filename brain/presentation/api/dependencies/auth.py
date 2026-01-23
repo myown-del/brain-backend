@@ -9,11 +9,11 @@ from brain.application.interactors.auth.interactor import AuthInteractor
 
 @inject
 async def get_user_from_request(
-        auth_interactor: FromDishka[AuthInteractor],
-        token: str = Header(alias="Authorization"),
+    auth_interactor: FromDishka[AuthInteractor],
+    token: str = Header(alias="Authorization"),
 ):
-    if 'Bearer ' in token:
-        token = token.replace('Bearer ', '')
+    if "Bearer " in token:
+        token = token.replace("Bearer ", "")
 
     try:
         return await auth_interactor.authorize_by_token(token)

@@ -27,7 +27,7 @@ def cast_value(value: str, to_type: Type[T]) -> T:
 def load_config(
         config_class: Type[T],
         env_file_path: str = '.env',
-        parent_prefix: Optional[str] = None
+        parent_prefix: Optional[str] = None,
 ) -> T:
     load_dotenv(dotenv_path=Path(env_file_path))
 

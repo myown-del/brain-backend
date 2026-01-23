@@ -12,7 +12,7 @@ from .upload import get_router as get_upload_router
 
 
 def register_routes(app: FastAPI, config: APIConfig):
-    root_router = APIRouter(prefix='/api')
+    root_router = APIRouter(prefix="/api")
     root_router.include_router(get_tgbot_router(config))
     root_router.include_router(get_healthcheck_router())
     root_router.include_router(get_auth_router())

@@ -40,25 +40,25 @@ class AuthInteractor:
         payload: JwtTokenCreationPayload,
     ) -> JwtAccessToken:
         return self._jwt_service.create_token(
-            payload=asdict(payload)
+            payload=asdict(payload),
         )
 
     def _create_access_token_for_user(self, user_id: UUID) -> JwtAccessToken:
         return self._create_jwt_token(
             payload=JwtTokenCreationPayload(
-                user_id=user_id
-            )
+                user_id=user_id,
+            ),
         )
 
     async def _create_refresh_token_for_user(self, user_id: UUID) -> JwtRefreshToken:
         refresh_expires_at = datetime.utcnow() + timedelta(
-            seconds=self._auth_config.refresh_token_lifetime
+            seconds=self._auth_config.refresh_token_lifetime,
         )
         refresh_jwt = self._jwt_service.create_token(
             payload={
                 "user_id": user_id,
                 "exp": refresh_expires_at,
-            }
+            },
         )
         refresh_token = JwtRefreshToken(
             id=uuid4(),
@@ -97,7 +97,7 @@ class AuthInteractor:
         )
 
     async def issue_refresh_token_for_telegram_id(
-        self, telegram_id: int
+        self, telegram_id: int,
     ) -> JwtRefreshToken:
         user = await self._user_interactor.get_user_by_telegram_id(telegram_id)
         return await self._create_refresh_token_for_user(user.id)
@@ -125,7 +125,7 @@ class AuthInteractor:
         await self._jwt_repo.delete_by_id(token_id)
 
     async def build_tokens_for_refresh_token_id(
-        self, token_id: UUID
+        self, token_id: UUID,
     ) -> FullJwtToken | None:
         refresh_token = await self._jwt_repo.get_by_id(token_id)
         if not refresh_token:

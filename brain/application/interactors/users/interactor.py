@@ -27,4 +27,3 @@ class UserInteractor:
             await self._users_repo.update(user_entity)
         else:
             await self._users_repo.create(user_entity)
-

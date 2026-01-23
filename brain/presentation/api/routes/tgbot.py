@@ -12,7 +12,7 @@ from brain.config.models import APIConfig
 async def handle_webhook(
         request: Request,
         bot: FromDishka[Bot],
-        dp: FromDishka[Dispatcher]
+        dp: FromDishka[Dispatcher],
 ):
     data = await request.json()
     update = Update(**data)

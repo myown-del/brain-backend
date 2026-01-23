@@ -14,7 +14,7 @@ async def test_dummy_repo_logic():
         id=note_id,
         user_id=user_id,
         title="Source",
-        represents_keyword_id=uuid4()
+        represents_keyword_id=uuid4(),
     )
     
     # 1. Upsert note

@@ -35,6 +35,15 @@ dependencies = [
     "httpx",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "ruff",
+]
+
+[tool.ruff]
+line-length = 120
+ignore = ["E501"]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["brain*"]

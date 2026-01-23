@@ -27,7 +27,7 @@ class TelegramBotAuthSessionsRepository(ITelegramBotAuthSessionsRepository):
 
     async def get_by_id(self, session_id: str) -> TelegramBotAuthSession | None:
         query = select(TelegramBotAuthSessionDB).where(
-            TelegramBotAuthSessionDB.id == session_id
+            TelegramBotAuthSessionDB.id == session_id,
         )
         result = await self._session.execute(query)
         db_model = result.scalar()

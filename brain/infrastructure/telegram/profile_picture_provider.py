@@ -13,9 +13,7 @@ class TelegramProfilePictureProvider(IProfilePictureProvider):
     def __init__(self, bot: Bot):
         self._bot = bot
 
-    async def get_profile_picture_content(
-        self, telegram_id: int
-    ) -> tuple[bytes, str] | None:
+    async def get_profile_picture_content(self, telegram_id: int) -> tuple[bytes, str] | None:
         photos = await self._bot.get_user_profile_photos(user_id=telegram_id, limit=1)
         if not photos.photos:
             return None
