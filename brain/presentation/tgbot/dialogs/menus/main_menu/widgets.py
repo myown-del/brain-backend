@@ -5,6 +5,7 @@ from aiogram_dialog import Window
 from brain.presentation.tgbot.states import ViewNotes, MainMenu
 
 
+# fmt: off
 main_menu_window = Window(
     Const(
         "Hello, I'm brain bot.\n"
@@ -18,3 +19,4 @@ main_menu_window = Window(
     ),
     state=MainMenu.main_menu,
 )
+# fmt: on
