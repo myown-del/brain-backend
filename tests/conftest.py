@@ -10,6 +10,7 @@ from brain.config.parser import load_config
 from brain.infrastructure.db.provider import DatabaseProvider
 from tests.fixtures.db_provider import TestDbProvider
 from tests.fixtures.graph_provider import TestGraphProvider
+from tests.log import setup_logging
 
 
 @pytest.fixture(scope="session")
@@ -21,6 +22,15 @@ def event_loop():
     asyncio.set_event_loop(loop)
     yield loop
     loop.close()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def configure_logging() -> None:
+    config = load_config(
+        config_class=Config,
+        env_file_path="tests/.env"
+    )
+    setup_logging(config.logging_level)
 
 
 @pytest_asyncio.fixture(scope="session")

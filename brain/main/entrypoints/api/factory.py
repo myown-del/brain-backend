@@ -28,12 +28,11 @@ async def on_startup(container: AsyncContainer, config: APIConfig):
     
 
 def create_app() -> FastAPI:
-    setup_logging()
-
     config = load_config(
         config_class=Config,
         env_file_path=".env"
     )
+    setup_logging(config.logging_level)
     app = create_bare_app(config=config.api)
     container = make_async_container(
         ConfigProvider(),

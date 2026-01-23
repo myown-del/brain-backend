@@ -30,12 +30,11 @@ async def setup_tasks(container: AsyncContainer, config: APIConfig):
 
 
 async def main():
-    setup_logging()
-
     config = load_config(
         config_class=Config,
         env_file_path=".env"
     )
+    setup_logging(config.logging_level)
     container = make_async_container(
         ConfigProvider(),
         BotProvider(),

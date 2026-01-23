@@ -95,3 +95,4 @@ class Config:
     s3: S3Config
     bot: BotConfig
     environment: EnvironmentType
+    logging_level: str = "INFO"

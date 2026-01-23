@@ -5,7 +5,7 @@ globs: tests/*
 ---
 
 # Running tests
-1. Use `uv run pytest tests` for running tests.
+1. Use `uv run pytest tests` for running tests. Don't run all tests, only ones you need to run.
 2. Always run tests you just wrote. Fix code until tests pass.
 
 # Writing tests
