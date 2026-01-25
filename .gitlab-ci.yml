@@ -37,5 +37,3 @@ deploy_prod:
     project: billy/brain-deploy
   needs:
     - build_image_prod
-  only:
-    - tags
