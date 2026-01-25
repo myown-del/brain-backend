@@ -7,7 +7,6 @@ stages:
   image: docker:20
   variables:
     IMAGE_NAME: ""
-    CI_REGISTRY_IMAGE: "${CI_REGISTRY}/${CI_PROJECT_PATH}"
   services:
     - name: docker:20-dind
       variables:
