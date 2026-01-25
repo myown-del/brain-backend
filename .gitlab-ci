@@ -1,0 +1,41 @@
+stages:
+  - build_image
+  - deploy
+
+.build_image_base:
+  stage: build_image
+  image: docker:20
+  variables:
+    IMAGE_NAME: ""
+    CI_REGISTRY_IMAGE: "$CI_REGISTRY/${CI_PROJECT_PATH}"
+  services:
+    - name: docker:20-dind
+      variables:
+        DOCKER_TLS_CERTDIR: ""
+  script:
+    - echo ${CI_REGISTRY}
+    - echo ${CI_REGISTRY_IMAGE}
+    - echo ${IMAGE_NAME}
+    - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+    - docker build -t ${IMAGE_NAME} -f Dockerfile .
+    - docker push ${IMAGE_NAME}
+  when: manual
+  allow_failure: false
+
+build_image_prod:
+  extends: .build_image_base
+  variables:
+    IMAGE_NAME: ${CI_REGISTRY_IMAGE}/${CI_PROJECT_NAME}:${CI_COMMIT_SHORT_SHA}-prod
+
+deploy_prod:
+  stage: deploy
+  variables:
+    UPSTREAM_IMAGE_NAME: ${CI_REGISTRY_IMAGE}/${CI_PROJECT_NAME}:${CI_COMMIT_SHORT_SHA}-prod
+    UPSTREAM_PROJECT: "backend"
+    UPSTREAM_ENVIRONMENT: "prod"
+  trigger:
+    project: billy/brain-deploy
+  needs:
+    - build_image_prod
+  only:
+    - tags
