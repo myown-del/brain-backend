@@ -30,7 +30,7 @@ build_image_prod:
 deploy_prod:
   stage: deploy
   variables:
-    UPSTREAM_IMAGE_NAME: ${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_SHORT_SHA}-prod
+    UPSTREAM_IMAGE_NAME: ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_COMMIT_SHORT_SHA}-prod
     UPSTREAM_PROJECT: "backend"
     UPSTREAM_ENVIRONMENT: "prod"
     CI_REGISTRY_IMAGE: "${CI_REGISTRY}/${CI_PROJECT_PATH}"
