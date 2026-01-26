@@ -1,6 +1,9 @@
 import asyncio
 import logging
+from pathlib import Path
 
+from alembic import command
+from alembic.config import Config as AlembicConfig
 from dishka import make_async_container, AsyncContainer
 from aiogram import Bot
 
@@ -17,9 +20,21 @@ from brain.infrastructure.telegram.provider import TelegramInfrastructureProvide
 from brain.application.interactors.factory import InteractorProvider
 
 logger = logging.getLogger(__name__)
+PROJECT_ROOT = Path(__file__).resolve().parents[4]
+MIGRATIONS_PATH = PROJECT_ROOT / "brain" / "infrastructure" / "migrations"
+ALEMBIC_CONFIG_PATH = PROJECT_ROOT / "alembic.ini"
 
 
-async def setup_tasks(container: AsyncContainer, config: APIConfig):
+def run_database_migrations(config: Config) -> None:
+    alembic_cfg = AlembicConfig(str(ALEMBIC_CONFIG_PATH))
+    alembic_cfg.set_main_option("script_location", str(MIGRATIONS_PATH))
+    alembic_cfg.set_main_option("sqlalchemy.url", config.db.uri)
+    alembic_cfg.attributes["configure_logger"] = False
+    command.upgrade(alembic_cfg, "head")
+    logger.info("Database migrations applied")
+
+
+async def setup_webhook(container: AsyncContainer, config: APIConfig):
     webhook_url = f"{config.external_host}/api/tg-bot/webhook"
 
     bot = await container.get(Bot)
@@ -27,9 +42,14 @@ async def setup_tasks(container: AsyncContainer, config: APIConfig):
     logger.info(f"Binded bot webhooks to url: {webhook_url}")
 
 
-async def main():
+def prepare_config() -> Config:
     config = load_config(config_class=Config, env_file_path=".env")
     setup_logging(config.logging_level)
+    run_database_migrations(config)
+    return config
+
+
+async def main(config: Config):
     container = make_async_container(
         ConfigProvider(),
         BotProvider(),
@@ -44,9 +64,10 @@ async def main():
         context={Config: config},
     )
 
-    await setup_tasks(container, config.api)
+    await setup_webhook(container, config.api)
     logger.info("Tasks setup complete")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    config = prepare_config()
+    asyncio.run(main(config))

@@ -9,6 +9,13 @@ services:
       - "./brain:/brain"
     ports:
       - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
     command: sh -c "python -m brain.main.entrypoints.setup_tasks && python -m brain.main.entrypoints.api"
 
   taskiq:
@@ -33,6 +40,11 @@ services:
       POSTGRES_DB: postgres
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 #    volumes:
 #      - brain-data:/var/lib/postgresql/data
 
@@ -40,6 +52,11 @@ services:
     image: redis:6
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   neo4j:
     image: neo4j:5
@@ -61,6 +78,11 @@ services:
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail http://localhost:9000/minio/health/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
 
   createbuckets:
     image: minio/mc
