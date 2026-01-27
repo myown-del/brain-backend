@@ -31,3 +31,7 @@ class WikilinkSuggestionSchema(BaseModel):
 class NoteCreationStatSchema(BaseModel):
     date: date
     count: int
+
+
+class NewNoteTitleSchema(BaseModel):
+    title: str

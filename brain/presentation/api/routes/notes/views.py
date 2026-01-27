@@ -16,6 +16,7 @@ from brain.application.interactors import (
     SearchWikilinkSuggestionsInteractor,
     UpdateNoteInteractor,
     ExportNotesInteractor,
+    GetNewNoteTitleInteractor,
     ImportNotesInteractor,
 )
 from brain.application.interactors.notes.exceptions import (
@@ -39,6 +40,7 @@ from brain.presentation.api.routes.notes.models import (
     UpdateNoteSchema,
     WikilinkSuggestionSchema,
     NoteCreationStatSchema,
+    NewNoteTitleSchema,
 )
 
 
@@ -220,6 +222,15 @@ async def get_note_creation_stats(
     return [map_note_creation_stat_to_schema(stat) for stat in stats]
 
 
+@inject
+async def get_new_note_title(
+    interactor: FromDishka[GetNewNoteTitleInteractor],
+    user: User = Depends(get_user_from_request),
+):
+    title = await interactor.get_title(user.id)
+    return NewNoteTitleSchema(title=title)
+
+
 def get_router() -> APIRouter:
     router = APIRouter(prefix="/notes")
     router.add_api_route(
@@ -252,6 +263,14 @@ def get_router() -> APIRouter:
         methods=["GET"],
         response_model=list[NoteCreationStatSchema],
         summary="Get note creation stats by date",
+        status_code=status.HTTP_200_OK,
+    )
+    router.add_api_route(
+        path="/new-title",
+        endpoint=get_new_note_title,
+        methods=["GET"],
+        response_model=NewNoteTitleSchema,
+        summary="Get next untitled note title",
         status_code=status.HTTP_200_OK,
     )
     router.add_api_route(

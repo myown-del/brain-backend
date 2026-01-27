@@ -46,6 +46,9 @@ class NoteTitleService:
         if existing_count > 0:
             raise NoteTitleAlreadyExistsException()
 
+    async def get_next_untitled_title(self, user_id: UUID) -> str:
+        return await self._next_untitled(user_id)
+
     async def _next_untitled(self, user_id: UUID) -> str:
         index = 1
         while True:

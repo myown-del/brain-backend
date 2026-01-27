@@ -6,6 +6,7 @@ from brain.application.interactors import (
     GetGraphInteractor,
     GetUserInteractor,
     GetNoteInteractor,
+    GetNewNoteTitleInteractor,
     GetNotesInteractor,
     GetNoteCreationStatsInteractor,
     SearchNotesByTitleInteractor,
@@ -44,6 +45,7 @@ class InteractorProvider(Provider):
     get_get_notes_interactor = provide(GetNotesInteractor, scope=Scope.REQUEST)
     get_get_note_creation_stats_interactor = provide(GetNoteCreationStatsInteractor, scope=Scope.REQUEST)
     get_get_note_interactor = provide(GetNoteInteractor, scope=Scope.REQUEST)
+    get_get_new_note_title_interactor = provide(GetNewNoteTitleInteractor, scope=Scope.REQUEST)
     get_search_notes_by_title_interactor = provide(SearchNotesByTitleInteractor, scope=Scope.REQUEST)
     get_search_wikilink_suggestions_interactor = provide(SearchWikilinkSuggestionsInteractor, scope=Scope.REQUEST)
     get_get_graph_interactor = provide(GetGraphInteractor, scope=Scope.REQUEST)

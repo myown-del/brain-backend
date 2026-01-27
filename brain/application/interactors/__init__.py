@@ -1,6 +1,7 @@
 from .notes.create_note import CreateNoteInteractor
 from .notes.delete_note import DeleteNoteInteractor
 from .notes.get_note import GetNoteInteractor
+from .notes.get_new_note_title import GetNewNoteTitleInteractor
 from .notes.get_notes import GetNotesInteractor
 from .notes.get_note_creation_stats import GetNoteCreationStatsInteractor
 from .notes.search_notes_by_title import SearchNotesByTitleInteractor
