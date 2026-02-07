@@ -19,3 +19,7 @@ class ReadApiKeySchema(BaseModel):
     id: UUID
     name: str
     created_at: datetime
+
+
+class ApiKeyValidationSchema(BaseModel):
+    is_valid: bool

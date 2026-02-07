@@ -3,16 +3,18 @@ from uuid import UUID
 
 from dishka import FromDishka
 from dishka.integrations.fastapi import inject
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Header, status
 
+from brain.application.interactors.auth.authorize_api_key import AuthorizeApiKeyInteractor
 from brain.application.interactors.auth.create_api_key import CreateApiKeyInteractor
 from brain.application.interactors.auth.delete_api_key import DeleteApiKeyInteractor
-from brain.application.interactors.auth.exceptions import ApiKeyNotFoundException
+from brain.application.interactors.auth.exceptions import ApiKeyInvalidException, ApiKeyNotFoundException
 from brain.application.interactors.auth.get_api_keys import GetApiKeysInteractor
 from brain.domain.entities.api_key import ApiKey
 from brain.domain.entities.user import User
 from brain.presentation.api.dependencies.auth import get_user_from_request
 from brain.presentation.api.routes.api_keys.models import (
+    ApiKeyValidationSchema,
     ApiKeySchema,
     CreateApiKeySchema,
     ReadApiKeySchema,
@@ -64,6 +66,28 @@ async def delete_api_key(
         )
 
 
+@inject
+async def validate_api_key(
+    interactor: FromDishka[AuthorizeApiKeyInteractor],
+    api_key: str | None = Header(default=None, alias="X-API-Key"),
+):
+    if not api_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="X-API-Key header is required",
+        )
+
+    try:
+        await interactor.authorize(api_key=api_key)
+    except ApiKeyInvalidException:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid api key",
+        )
+
+    return ApiKeyValidationSchema(is_valid=True)
+
+
 def get_router() -> APIRouter:
     router = APIRouter(prefix="/api-keys", tags=["Api Keys"])
     router.add_api_route(
@@ -78,6 +102,13 @@ def get_router() -> APIRouter:
         endpoint=get_api_keys,
         methods=["GET"],
         response_model=list[ReadApiKeySchema],
+        status_code=status.HTTP_200_OK,
+    )
+    router.add_api_route(
+        path="/validate",
+        endpoint=validate_api_key,
+        methods=["GET"],
+        response_model=ApiKeyValidationSchema,
         status_code=status.HTTP_200_OK,
     )
     router.add_api_route(

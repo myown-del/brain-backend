@@ -220,3 +220,63 @@ async def test_delete_api_key_returns_not_found_for_foreign_key(
     # check: not found for non-owned key
     assert delete_response.status_code == status.HTTP_404_NOT_FOUND
     assert delete_response.json()["detail"] == "Api key not found"
+
+
+@pytest.mark.asyncio
+async def test_validate_api_key_returns_true_for_valid_key(
+    dishka: AsyncContainer,
+    dishka_request: AsyncContainer,
+    api_client,
+    user,
+):
+    # setup: create app, token, and api key
+    config = await dishka_request.get(Config)
+    auth_interactor = await dishka_request.get(AuthInteractor)
+    tokens = await auth_interactor.login(user.telegram_id)
+    app = create_bare_app(config.api)
+    setup_dishka(container=dishka, app=app)
+
+    async with api_client(app) as client:
+        create_response = await client.request(
+            method="POST",
+            url="/api/api-keys/",
+            headers={"Authorization": f"Bearer {tokens.access_token}"},
+            json={"name": "validation-key"},
+        )
+    api_key = create_response.json()["key"]
+
+    # action: validate the key via dedicated endpoint
+    async with api_client(app) as client:
+        validate_response = await client.request(
+            method="GET",
+            url="/api/api-keys/validate",
+            headers={"X-API-Key": api_key},
+        )
+
+    # check: key is recognized as valid
+    assert validate_response.status_code == status.HTTP_200_OK
+    assert validate_response.json() == {"is_valid": True}
+
+
+@pytest.mark.asyncio
+async def test_validate_api_key_returns_401_for_invalid_key(
+    dishka: AsyncContainer,
+    dishka_request: AsyncContainer,
+    api_client,
+):
+    # setup: create app with full container
+    config = await dishka_request.get(Config)
+    app = create_bare_app(config.api)
+    setup_dishka(container=dishka, app=app)
+
+    # action: validate unknown key
+    async with api_client(app) as client:
+        response = await client.request(
+            method="GET",
+            url="/api/api-keys/validate",
+            headers={"X-API-Key": "invalid-api-key"},
+        )
+
+    # check: invalid key is rejected
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json()["detail"] == "Invalid api key"
