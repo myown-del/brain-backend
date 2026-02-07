@@ -6,3 +6,4 @@ from brain.domain.entities.note_keyword import NoteKeyword
 from brain.domain.entities.user import User
 from brain.domain.entities.jwt import JwtAccessToken, FullJwtToken, JwtRefreshToken
 from brain.domain.entities.tg_bot_auth import TelegramBotAuthSession
+from brain.domain.entities.api_key import ApiKey

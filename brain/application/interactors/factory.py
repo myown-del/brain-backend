@@ -24,6 +24,11 @@ from brain.application.services.keyword_notes import KeywordNoteService
 from brain.application.services.note_titles import NoteTitleService
 from brain.application.services.note_keyword_sync import NoteKeywordSyncService
 from brain.application.interactors.auth.interactor import AuthInteractor
+from brain.application.interactors.auth.create_api_key import CreateApiKeyInteractor
+from brain.application.interactors.auth.delete_api_key import DeleteApiKeyInteractor
+from brain.application.interactors.auth.get_api_keys import GetApiKeysInteractor
+from brain.application.interactors.auth.authorize_api_key import AuthorizeApiKeyInteractor
+from brain.application.orchestrators.authorization import AuthorizationOrchestrator
 from brain.application.interactors.auth.session_interactor import (
     TelegramBotAuthSessionInteractor,
 )
@@ -50,6 +55,11 @@ class InteractorProvider(Provider):
     get_search_wikilink_suggestions_interactor = provide(SearchWikilinkSuggestionsInteractor, scope=Scope.REQUEST)
     get_get_graph_interactor = provide(GetGraphInteractor, scope=Scope.REQUEST)
     get_auth_interactor = provide(AuthInteractor, scope=Scope.REQUEST)
+    get_create_api_key_interactor = provide(CreateApiKeyInteractor, scope=Scope.REQUEST)
+    get_get_api_keys_interactor = provide(GetApiKeysInteractor, scope=Scope.REQUEST)
+    get_delete_api_key_interactor = provide(DeleteApiKeyInteractor, scope=Scope.REQUEST)
+    get_authorize_api_key_interactor = provide(AuthorizeApiKeyInteractor, scope=Scope.REQUEST)
+    get_authorization_orchestrator = provide(AuthorizationOrchestrator, scope=Scope.REQUEST)
     get_telegram_bot_auth_session_interactor = provide(TelegramBotAuthSessionInteractor, scope=Scope.REQUEST)
     get_export_notes_interactor = provide(ExportNotesInteractor, scope=Scope.REQUEST)
     get_import_notes_interactor = provide(ImportNotesInteractor, scope=Scope.REQUEST)

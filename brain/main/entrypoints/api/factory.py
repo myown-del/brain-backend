@@ -18,6 +18,7 @@ from brain.infrastructure.s3.provider import S3Provider
 from brain.main.entrypoints.taskiq.broker import broker as taskiq_broker
 from brain.application.interactors.factory import InteractorProvider
 from brain.infrastructure.telegram.provider import TelegramInfrastructureProvider
+from brain.infrastructure.api_keys.provider import ApiKeyServiceProvider
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +39,7 @@ def create_app() -> FastAPI:
         DatabaseProvider(),
         Neo4jProvider(),
         S3Provider(),
+        ApiKeyServiceProvider(),
         InteractorProvider(),
         TelegramInfrastructureProvider(),
         JwtProvider(),

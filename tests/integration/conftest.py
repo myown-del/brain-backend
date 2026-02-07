@@ -16,6 +16,7 @@ from brain.domain.entities.user import User
 from brain.infrastructure.db.provider import DatabaseProvider
 from brain.infrastructure.db.repositories.hub import RepositoryHub
 from brain.infrastructure.jwt.provider import JwtProvider
+from brain.infrastructure.api_keys.provider import ApiKeyServiceProvider
 from tests.fixtures.db_provider import TestDbProvider
 from tests.fixtures.profile_picture_storage_provider import TestProfilePictureStorageProvider
 from tests.fixtures.graph_provider import TestGraphProvider, TestNeo4jConfigProvider
@@ -47,6 +48,7 @@ async def dishka():
         DatabaseProvider(),
         TestNeo4jConfigProvider(),
         TestGraphProvider(),
+        ApiKeyServiceProvider(),
         TestProfilePictureStorageProvider(),
         TestProfilePictureProvider(),
         MockBotProvider(),

@@ -26,7 +26,7 @@ from brain.application.interactors.notes.exceptions import (
     NoteTitleRequiredException,
 )
 from brain.domain.entities.user import User
-from brain.presentation.api.dependencies.auth import get_user_from_request
+from brain.presentation.api.dependencies.auth import get_notes_user_from_request
 from brain.presentation.api.routes.notes.mappers import (
     map_create_schema_to_dto,
     map_note_to_read_schema,
@@ -49,7 +49,7 @@ async def get_notes(
     interactor: FromDishka[GetNotesInteractor],
     from_date: datetime | None = Query(None),
     to_date: datetime | None = Query(None),
-    user: User = Depends(get_user_from_request),
+    user: User = Depends(get_notes_user_from_request),
 ):
     notes = await interactor.get_notes(
         user.telegram_id,
@@ -63,7 +63,7 @@ async def get_notes(
 async def get_wikilink_suggestions(
     interactor: FromDishka[SearchWikilinkSuggestionsInteractor],
     query: str = Query(..., min_length=1),
-    user: User = Depends(get_user_from_request),
+    user: User = Depends(get_notes_user_from_request),
 ):
     suggestions = await interactor.search_wikilink_suggestions(
         user_id=user.id,
@@ -77,7 +77,7 @@ async def search_notes_by_title(
     interactor: FromDishka[SearchNotesByTitleInteractor],
     query: str = Query(..., min_length=1),
     exact_match: bool = Query(False),
-    user: User = Depends(get_user_from_request),
+    user: User = Depends(get_notes_user_from_request),
 ):
     notes = await interactor.search(
         user_id=user.id,
@@ -92,7 +92,7 @@ async def create_note(
     create_interactor: FromDishka[CreateNoteInteractor],
     get_note_interactor: FromDishka[GetNoteInteractor],
     note: CreateNoteSchema,
-    user: User = Depends(get_user_from_request),
+    user: User = Depends(get_notes_user_from_request),
 ):
     data = map_create_schema_to_dto(note, user)
     try:
@@ -121,7 +121,7 @@ async def delete_note(
     get_note_interactor: FromDishka[GetNoteInteractor],
     delete_interactor: FromDishka[DeleteNoteInteractor],
     note_id: UUID,
-    user: User = Depends(get_user_from_request),
+    user: User = Depends(get_notes_user_from_request),
 ):
     note = await get_note_interactor.get_note_by_id(note_id)
     if not note:
@@ -145,7 +145,7 @@ async def update_note(
     update_interactor: FromDishka[UpdateNoteInteractor],
     note_id: UUID,
     note: UpdateNoteSchema,
-    user: User = Depends(get_user_from_request),
+    user: User = Depends(get_notes_user_from_request),
 ):
     existing_note = await get_note_interactor.get_note_by_id(note_id)
     if not existing_note:
@@ -185,7 +185,7 @@ async def update_note(
 @inject
 async def export_notes(
     interactor: FromDishka[ExportNotesInteractor],
-    user: User = Depends(get_user_from_request),
+    user: User = Depends(get_notes_user_from_request),
 ):
     zip_bytes = await interactor.export_notes(user.telegram_id)
     return Response(
@@ -199,7 +199,7 @@ async def export_notes(
 async def import_notes(
     interactor: FromDishka[ImportNotesInteractor],
     file: UploadFile = File(...),
-    user: User = Depends(get_user_from_request),
+    user: User = Depends(get_notes_user_from_request),
 ):
     if not file.filename.endswith(".zip"):
         raise HTTPException(status_code=400, detail="File must be a .zip extension")
@@ -216,7 +216,7 @@ async def import_notes(
 @inject
 async def get_note_creation_stats(
     interactor: FromDishka[GetNoteCreationStatsInteractor],
-    user: User = Depends(get_user_from_request),
+    user: User = Depends(get_notes_user_from_request),
 ):
     stats = await interactor.get_stats(user.telegram_id)
     return [map_note_creation_stat_to_schema(stat) for stat in stats]
@@ -225,7 +225,7 @@ async def get_note_creation_stats(
 @inject
 async def get_new_note_title(
     interactor: FromDishka[GetNewNoteTitleInteractor],
-    user: User = Depends(get_user_from_request),
+    user: User = Depends(get_notes_user_from_request),
 ):
     title = await interactor.get_title(user.id)
     return NewNoteTitleSchema(title=title)

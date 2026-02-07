@@ -16,6 +16,7 @@ from brain.main.log import setup_logging
 from brain.presentation.tgbot.provider import DispatcherProvider, BotProvider
 from brain.infrastructure.db.provider import DatabaseProvider
 from brain.infrastructure.graph.provider import Neo4jProvider
+from brain.infrastructure.api_keys.provider import ApiKeyServiceProvider
 from brain.infrastructure.telegram.provider import TelegramInfrastructureProvider
 from brain.application.interactors.factory import InteractorProvider
 
@@ -57,6 +58,7 @@ async def main(config: Config):
         DatabaseProvider(),
         Neo4jProvider(),
         S3Provider(),
+        ApiKeyServiceProvider(),
         InteractorProvider(),
         TelegramInfrastructureProvider(),
         JwtProvider(),

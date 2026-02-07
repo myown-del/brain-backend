@@ -5,3 +5,4 @@ from .note import NoteDB
 from .tg_bot_auth import TelegramBotAuthSessionDB
 from .user import UserDB
 from .s3 import S3FileDB
+from .api_key import ApiKeyDB

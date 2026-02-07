@@ -11,3 +11,6 @@ from brain.application.abstractions.repositories.tg_bot_auth import (
 from brain.application.abstractions.repositories.jwt import (
     IJwtRefreshTokensRepository,
 )
+from brain.application.abstractions.repositories.api_keys import (
+    IApiKeysRepository,
+)

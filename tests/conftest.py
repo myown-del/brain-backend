@@ -8,6 +8,7 @@ from brain.config.provider import ConfigProvider
 from brain.config.models import Config
 from brain.config.parser import load_config
 from brain.infrastructure.db.provider import DatabaseProvider
+from brain.infrastructure.api_keys.provider import ApiKeyServiceProvider
 from tests.fixtures.db_provider import TestDbProvider
 from tests.fixtures.graph_provider import TestGraphProvider
 from tests.log import setup_logging
@@ -46,6 +47,7 @@ async def dishka():
         ConfigProvider(),
         TestDbProvider(),
         DatabaseProvider(),
+        ApiKeyServiceProvider(),
         TestGraphProvider(),
         InteractorProvider(),
         JwtProvider(),

@@ -14,6 +14,7 @@ from brain.infrastructure.db.provider import DatabaseProvider
 from brain.infrastructure.graph.provider import Neo4jProvider
 from brain.infrastructure.jwt.provider import JwtProvider
 from brain.infrastructure.s3.provider import S3Provider
+from brain.infrastructure.api_keys.provider import ApiKeyServiceProvider
 from brain.infrastructure.telegram.provider import TelegramInfrastructureProvider
 
 config = load_config(
@@ -45,6 +46,7 @@ def setup_broker() -> None:
         DatabaseProvider(),
         Neo4jProvider(),
         S3Provider(),
+        ApiKeyServiceProvider(),
         InteractorProvider(),
         TelegramInfrastructureProvider(),
         JwtProvider(),

@@ -2,8 +2,7 @@ from dataclasses import asdict
 
 from dishka import FromDishka
 from dishka.integrations.fastapi import inject
-from fastapi import APIRouter, HTTPException, status, Query
-
+from fastapi import APIRouter, HTTPException, Query, status
 from brain.application.interactors.auth.exceptions import (
     JwtTokenExpiredException,
     JwtTokenInvalidException,
@@ -15,13 +14,13 @@ from brain.application.interactors.auth.session_interactor import (
 )
 from brain.application.interactors.users.exceptions import UserNotFoundException
 from brain.config.models import AuthenticationConfig
+from brain.domain.entities.tg_bot_auth import TelegramBotAuthSession
 from brain.presentation.api.routes.auth.models import (
-    JwtTokenSchema,
     FakeAuthSchema,
+    JwtTokenSchema,
     RefreshTokenSchema,
     TelegramBotAuthSessionSchema,
 )
-from brain.domain.entities.tg_bot_auth import TelegramBotAuthSession
 
 
 def _serialize_tg_bot_auth_session(

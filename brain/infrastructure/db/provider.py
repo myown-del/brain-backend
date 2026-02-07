@@ -12,6 +12,9 @@ from brain.application.abstractions.repositories.s3_files import (
 from brain.application.abstractions.repositories.jwt import (
     IJwtRefreshTokensRepository,
 )
+from brain.application.abstractions.repositories.api_keys import (
+    IApiKeysRepository,
+)
 from brain.application.abstractions.repositories.tg_bot_auth import (
     ITelegramBotAuthSessionsRepository,
 )
@@ -24,6 +27,9 @@ from brain.infrastructure.db.repositories.users import UsersRepository
 from brain.infrastructure.db.repositories.s3_files import S3FilesRepository
 from brain.infrastructure.db.repositories.jwt import (
     JwtRefreshTokensRepository,
+)
+from brain.infrastructure.db.repositories.api_keys import (
+    ApiKeysRepository,
 )
 from brain.infrastructure.db.repositories.tg_bot_auth import (
     TelegramBotAuthSessionsRepository,
@@ -61,5 +67,10 @@ class DatabaseProvider(Provider):
         JwtRefreshTokensRepository,
         scope=Scope.REQUEST,
         provides=IJwtRefreshTokensRepository,
+    )
+    api_keys_repository = provide(
+        ApiKeysRepository,
+        scope=Scope.REQUEST,
+        provides=IApiKeysRepository,
     )
     hub_repository = provide(RepositoryHub, scope=Scope.REQUEST)

@@ -10,7 +10,10 @@ from httpx import AsyncClient, ASGITransport
 
 from brain.config.models import Config
 from brain.domain.entities.user import User
-from brain.presentation.api.dependencies.auth import get_user_from_request
+from brain.presentation.api.dependencies.auth import (
+    get_notes_user_from_request,
+    get_user_from_request,
+)
 from brain.presentation.api.factory import create_bare_app
 
 ApiClientFactory = Callable[[FastAPI], AsyncIterator[AsyncClient]]
@@ -40,5 +43,6 @@ async def notes_app(
         return user
 
     app.dependency_overrides[get_user_from_request] = override_user
+    app.dependency_overrides[get_notes_user_from_request] = override_user
     setup_dishka(container=dishka, app=app)
     return app
