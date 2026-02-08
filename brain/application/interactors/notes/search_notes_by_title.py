@@ -8,7 +8,13 @@ class SearchNotesByTitleInteractor:
     def __init__(self, notes_repo: INotesRepository):
         self._notes_repo = notes_repo
 
-    async def search(self, user_id: UUID, query: str, exact_match: bool = False) -> list[Note]:
+    async def search(
+        self,
+        user_id: UUID,
+        query: str,
+        exact_match: bool = False,
+        pinned_first: bool = True,
+    ) -> list[Note]:
         raw_query = query or ""
         normalized_query = raw_query if exact_match else raw_query.strip()
         if not normalized_query:
@@ -18,4 +24,5 @@ class SearchNotesByTitleInteractor:
             user_id=user_id,
             query=normalized_query,
             exact_match=exact_match,
+            pinned_first=pinned_first,
         )

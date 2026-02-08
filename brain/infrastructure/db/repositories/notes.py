@@ -30,6 +30,7 @@ class NotesRepository(INotesRepository):
         telegram_id: int,
         from_date: datetime | None = None,
         to_date: datetime | None = None,
+        pinned_first: bool = True,
     ) -> list[Note]:
         query = (
             select(NoteDB)
@@ -40,6 +41,10 @@ class NotesRepository(INotesRepository):
             query = query.where(NoteDB.created_at >= from_date)
         if to_date:
             query = query.where(NoteDB.created_at <= to_date)
+        if pinned_first:
+            query = query.order_by(NoteDB.is_pinned.desc(), NoteDB.updated_at.desc())
+        else:
+            query = query.order_by(NoteDB.updated_at.desc())
         result = await self._session.execute(query)
 
         db_models = result.unique().scalars().all()
@@ -76,6 +81,7 @@ class NotesRepository(INotesRepository):
         user_id: UUID,
         query: str,
         exact_match: bool = False,
+        pinned_first: bool = True,
     ) -> list[Note]:
         normalized = (query or "").strip()
         if not normalized:
@@ -93,7 +99,10 @@ class NotesRepository(INotesRepository):
                 func.lower(func.trim(NoteDB.title)).like(f"%{normalized.lower()}%"),
             )
 
-        stmt = stmt.order_by(NoteDB.updated_at.desc())
+        if pinned_first:
+            stmt = stmt.order_by(NoteDB.is_pinned.desc(), NoteDB.updated_at.desc())
+        else:
+            stmt = stmt.order_by(NoteDB.updated_at.desc())
         result = await self._session.execute(stmt)
         db_models = result.scalars().all()
         return [map_note_to_dm(db_model) for db_model in db_models]
@@ -110,6 +119,7 @@ class NotesRepository(INotesRepository):
         db_model.title = entity.title
         db_model.text = entity.text
         db_model.represents_keyword_id = entity.represents_keyword_id
+        db_model.is_pinned = entity.is_pinned
         db_model.updated_at = entity.updated_at or datetime.utcnow()
         await self._session.commit()
 

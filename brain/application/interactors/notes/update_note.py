@@ -47,6 +47,7 @@ class UpdateNoteInteractor:
             title=note.title,
             text=note.text,
             represents_keyword_id=note.represents_keyword_id,
+            is_pinned=note.is_pinned,
             updated_at=note.updated_at,
             created_at=note.created_at,
             link_intervals=note.link_intervals,
@@ -79,6 +80,8 @@ class UpdateNoteInteractor:
                 raise ValueError("Failed to apply patch")
         elif note_data.text is not Unset:
             note.text = note_data.text
+        if note_data.is_pinned is not Unset:
+            note.is_pinned = note_data.is_pinned
 
         # Differential Update Optimization
         # Check if we can skip Neo4j sync

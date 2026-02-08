@@ -55,6 +55,7 @@ class ImportNotesInteractor:
     async def _import_single_note(self, user_id: UUID, note_data: dict) -> None:
         title = note_data.get("title")
         text = note_data.get("text")
+        is_pinned = bool(note_data.get("is_pinned", False))
         # We ignore ID from import, generate new one
         # We also ignore user_id from import, use current user
 
@@ -93,6 +94,7 @@ class ImportNotesInteractor:
             title=title,
             text=text,
             represents_keyword_id=represents_keyword_id,
+            is_pinned=is_pinned,
             created_at=created_at,
             updated_at=updated_at,
         )

@@ -49,12 +49,14 @@ async def get_notes(
     interactor: FromDishka[GetNotesInteractor],
     from_date: datetime | None = Query(None),
     to_date: datetime | None = Query(None),
+    pinned_first: bool = Query(True),
     user: User = Depends(get_notes_user_from_request),
 ):
     notes = await interactor.get_notes(
         user.telegram_id,
         from_date=from_date,
         to_date=to_date,
+        pinned_first=pinned_first,
     )
     return [map_note_to_read_schema(note) for note in notes]
 
@@ -77,12 +79,14 @@ async def search_notes_by_title(
     interactor: FromDishka[SearchNotesByTitleInteractor],
     query: str = Query(..., min_length=1),
     exact_match: bool = Query(False),
+    pinned_first: bool = Query(True),
     user: User = Depends(get_notes_user_from_request),
 ):
     notes = await interactor.search(
         user_id=user.id,
         query=query,
         exact_match=exact_match,
+        pinned_first=pinned_first,
     )
     return [map_note_to_read_schema(note) for note in notes]
 

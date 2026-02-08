@@ -46,6 +46,7 @@ def map_update_schema_to_dto(
         title=payload.get("title", Unset),
         text=payload.get("text", Unset),
         patch=payload.get("patch", Unset),
+        is_pinned=payload.get("is_pinned", Unset),
     )
 
 

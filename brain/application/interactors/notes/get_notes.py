@@ -13,9 +13,11 @@ class GetNotesInteractor:
         user_telegram_id: int,
         from_date: datetime | None = None,
         to_date: datetime | None = None,
+        pinned_first: bool = True,
     ) -> list[Note]:
         return await self._notes_repo.get_by_user_telegram_id(
             user_telegram_id,
             from_date=from_date,
             to_date=to_date,
+            pinned_first=pinned_first,
         )

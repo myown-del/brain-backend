@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 from starlette import status
 
@@ -72,3 +74,71 @@ async def test_search_notes_by_title_exact_match_true(
     assert response.status_code == status.HTTP_200_OK
     payload = response.json()
     assert [item["title"] for item in payload] == ["Test Note"]
+
+
+@pytest.mark.asyncio
+async def test_search_notes_by_title_pinned_first_default_true(
+    notes_app,
+    api_client,
+    repo_hub: RepositoryHub,
+    user,
+):
+    await create_keyword_note(
+        repo_hub=repo_hub,
+        user=user,
+        title="Search Note",
+        text="Content",
+        is_pinned=False,
+    )
+    pinned_note = await create_keyword_note(
+        repo_hub=repo_hub,
+        user=user,
+        title="Search Note Pinned",
+        text="Content",
+        is_pinned=True,
+    )
+
+    async with api_client(notes_app) as client:
+        response = await client.request(
+            method="GET",
+            url="/api/notes/search/by-title?query=Search Note",
+        )
+
+    assert response.status_code == status.HTTP_200_OK
+    payload = response.json()
+    assert payload[0]["id"] == str(pinned_note.id)
+
+
+@pytest.mark.asyncio
+async def test_search_notes_by_title_pinned_first_false_uses_updated_at_order(
+    notes_app,
+    api_client,
+    repo_hub: RepositoryHub,
+    user,
+):
+    await create_keyword_note(
+        repo_hub=repo_hub,
+        user=user,
+        title="Search Old Pinned",
+        text="Content",
+        updated_at=datetime(2024, 1, 1, 0, 0, 0),
+        is_pinned=True,
+    )
+    newest_regular = await create_keyword_note(
+        repo_hub=repo_hub,
+        user=user,
+        title="Search New Regular",
+        text="Content",
+        updated_at=datetime(2024, 1, 2, 0, 0, 0),
+        is_pinned=False,
+    )
+
+    async with api_client(notes_app) as client:
+        response = await client.request(
+            method="GET",
+            url="/api/notes/search/by-title?query=Search&pinned_first=false",
+        )
+
+    assert response.status_code == status.HTTP_200_OK
+    payload = response.json()
+    assert payload[0]["id"] == str(newest_regular.id)

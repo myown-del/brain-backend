@@ -154,3 +154,32 @@ async def test_update_note_duplicate_title(
     # check: duplicate title error
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["detail"] == "Note title must be unique"
+
+
+@pytest.mark.asyncio
+async def test_update_note_can_set_is_pinned(
+    notes_app,
+    api_client,
+    repo_hub: RepositoryHub,
+    user,
+):
+    note = await create_keyword_note(
+        repo_hub=repo_hub,
+        user=user,
+        title="Pin Me",
+        text="Text",
+    )
+
+    async with api_client(notes_app) as client:
+        response = await client.request(
+            method="PATCH",
+            url=f"/api/notes/{note.id}",
+            json={"is_pinned": True},
+        )
+
+    assert response.status_code == status.HTTP_200_OK
+    payload = response.json()
+    assert payload["is_pinned"] is True
+    stored = await repo_hub.notes.get_by_id(note.id)
+    assert stored is not None
+    assert stored.is_pinned is True

@@ -25,6 +25,7 @@ class INotesRepository(Protocol):
         telegram_id: int,
         from_date: datetime | None = None,
         to_date: datetime | None = None,
+        pinned_first: bool = True,
     ) -> list[Note]:
         raise NotImplementedError
 
@@ -42,6 +43,7 @@ class INotesRepository(Protocol):
         user_id: UUID,
         query: str,
         exact_match: bool = False,
+        pinned_first: bool = True,
     ) -> list[Note]:
         raise NotImplementedError
 
