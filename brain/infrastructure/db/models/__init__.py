@@ -1,4 +1,6 @@
 from .base import Base
+from .draft import DraftDB
+from .hashtag import HashtagDB, DraftHashtagDB
 from .jwt import JwtRefreshTokenDB
 from .keyword import KeywordDB, NoteKeywordDB
 from .note import NoteDB

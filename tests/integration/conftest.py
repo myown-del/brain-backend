@@ -73,6 +73,7 @@ async def dishka_request(dishka: AsyncContainer) -> AsyncContainer:
 
 async def clear_db(repo_hub: RepositoryHub):
     await repo_hub.s3_files.delete_all()
+    await repo_hub.drafts.delete_all()
     await repo_hub.users.delete_all()
     await repo_hub.notes.delete_all()
 

@@ -3,6 +3,8 @@ from typing import AsyncIterable
 from dishka import Provider, provide, Scope
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, AsyncEngine
 
+from brain.application.abstractions.repositories.drafts import IDraftsRepository
+from brain.application.abstractions.repositories.hashtags import IHashtagsRepository
 from brain.application.abstractions.repositories.notes import INotesRepository
 from brain.application.abstractions.repositories.keywords import IKeywordsRepository
 from brain.application.abstractions.repositories.users import IUsersRepository
@@ -21,6 +23,8 @@ from brain.application.abstractions.repositories.tg_bot_auth import (
 from brain.application.abstractions.config.models import IDatabaseConfig
 from brain.infrastructure.db.connection import create_engine, create_session_maker
 from brain.infrastructure.db.repositories.hub import RepositoryHub
+from brain.infrastructure.db.repositories.drafts import DraftsRepository
+from brain.infrastructure.db.repositories.hashtags import HashtagsRepository
 from brain.infrastructure.db.repositories.notes import NotesRepository
 from brain.infrastructure.db.repositories.keywords import KeywordsRepository
 from brain.infrastructure.db.repositories.users import UsersRepository
@@ -55,6 +59,8 @@ class DatabaseProvider(Provider):
             yield session
 
     users_repository = provide(UsersRepository, scope=Scope.REQUEST, provides=IUsersRepository)
+    drafts_repository = provide(DraftsRepository, scope=Scope.REQUEST, provides=IDraftsRepository)
+    hashtags_repository = provide(HashtagsRepository, scope=Scope.REQUEST, provides=IHashtagsRepository)
     notes_repository = provide(NotesRepository, scope=Scope.REQUEST, provides=INotesRepository)
     keywords_repository = provide(KeywordsRepository, scope=Scope.REQUEST, provides=IKeywordsRepository)
     s3_files_repository = provide(S3FilesRepository, scope=Scope.REQUEST, provides=IS3FilesRepository)

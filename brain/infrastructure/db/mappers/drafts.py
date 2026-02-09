@@ -1,0 +1,25 @@
+from brain.domain.entities.draft import Draft
+from brain.infrastructure.db.models.draft import DraftDB
+
+
+def map_draft_to_dm(draft: DraftDB) -> Draft:
+    hashtags = [hashtag.text for hashtag in draft.hashtags if hashtag.text]
+    hashtags.sort()
+    return Draft(
+        id=draft.id,
+        user_id=draft.user_id,
+        text=draft.text,
+        hashtags=hashtags,
+        created_at=draft.created_at,
+        updated_at=draft.updated_at,
+    )
+
+
+def map_draft_to_db(draft: Draft) -> DraftDB:
+    return DraftDB(
+        id=draft.id,
+        user_id=draft.user_id,
+        text=draft.text,
+        created_at=draft.created_at,
+        updated_at=draft.updated_at,
+    )

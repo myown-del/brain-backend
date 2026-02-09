@@ -3,6 +3,12 @@ from dishka import Provider, Scope, provide
 from brain.application.interactors import (
     CreateNoteInteractor,
     DeleteNoteInteractor,
+    CreateDraftInteractor,
+    DeleteDraftInteractor,
+    GetDraftInteractor,
+    GetDraftsInteractor,
+    SearchDraftsByTextInteractor,
+    UpdateDraftInteractor,
     GetGraphInteractor,
     GetUserInteractor,
     GetNoteInteractor,
@@ -20,6 +26,7 @@ from brain.application.interactors import (
 from brain.application.interactors.users.update_all_profile_pictures import (
     UpdateAllUsersProfilePicturesInteractor,
 )
+from brain.application.services.draft_hashtag_sync import DraftHashtagSyncService
 from brain.application.services.keyword_notes import KeywordNoteService
 from brain.application.services.note_titles import NoteTitleService
 from brain.application.services.note_keyword_sync import NoteKeywordSyncService
@@ -43,15 +50,22 @@ class InteractorProvider(Provider):
     )
     get_keyword_note_service = provide(KeywordNoteService, scope=Scope.REQUEST)
     get_note_title_service = provide(NoteTitleService, scope=Scope.REQUEST)
+    get_draft_hashtag_sync_service = provide(DraftHashtagSyncService, scope=Scope.REQUEST)
     get_note_keyword_sync_service = provide(NoteKeywordSyncService, scope=Scope.REQUEST)
     get_create_note_interactor = provide(CreateNoteInteractor, scope=Scope.REQUEST)
+    get_create_draft_interactor = provide(CreateDraftInteractor, scope=Scope.REQUEST)
     get_update_note_interactor = provide(UpdateNoteInteractor, scope=Scope.REQUEST)
+    get_update_draft_interactor = provide(UpdateDraftInteractor, scope=Scope.REQUEST)
     get_delete_note_interactor = provide(DeleteNoteInteractor, scope=Scope.REQUEST)
+    get_delete_draft_interactor = provide(DeleteDraftInteractor, scope=Scope.REQUEST)
     get_get_notes_interactor = provide(GetNotesInteractor, scope=Scope.REQUEST)
+    get_get_drafts_interactor = provide(GetDraftsInteractor, scope=Scope.REQUEST)
     get_get_note_creation_stats_interactor = provide(GetNoteCreationStatsInteractor, scope=Scope.REQUEST)
     get_get_note_interactor = provide(GetNoteInteractor, scope=Scope.REQUEST)
+    get_get_draft_interactor = provide(GetDraftInteractor, scope=Scope.REQUEST)
     get_get_new_note_title_interactor = provide(GetNewNoteTitleInteractor, scope=Scope.REQUEST)
     get_search_notes_by_title_interactor = provide(SearchNotesByTitleInteractor, scope=Scope.REQUEST)
+    get_search_drafts_by_text_interactor = provide(SearchDraftsByTextInteractor, scope=Scope.REQUEST)
     get_search_wikilink_suggestions_interactor = provide(SearchWikilinkSuggestionsInteractor, scope=Scope.REQUEST)
     get_get_graph_interactor = provide(GetGraphInteractor, scope=Scope.REQUEST)
     get_auth_interactor = provide(AuthInteractor, scope=Scope.REQUEST)

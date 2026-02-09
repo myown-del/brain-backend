@@ -23,6 +23,7 @@ class UserDB(Base, CreatedUpdatedMixin):
     )
 
     notes = relationship("NoteDB", back_populates="user", lazy="selectin")
+    drafts = relationship("DraftDB", back_populates="user", lazy="selectin")
     keywords = relationship("KeywordDB", back_populates="user", lazy="selectin")
     profile_picture_file = relationship(
         S3FileDB,
