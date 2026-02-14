@@ -70,7 +70,7 @@ class DraftsRepository(IDraftsRepository):
             to_date=to_date,
             hashtags=hashtags,
         )
-        stmt = stmt.order_by(DraftDB.updated_at.desc())
+        stmt = stmt.order_by(DraftDB.created_at.desc())
         result = await self._session.execute(stmt)
         db_models = result.unique().scalars().all()
         return [map_draft_to_dm(db_model) for db_model in db_models]
