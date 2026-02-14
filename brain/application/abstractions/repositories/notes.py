@@ -98,5 +98,6 @@ class INotesRepository(Protocol):
     async def get_note_creation_stats_by_user_telegram_id(
         self,
         telegram_id: int,
+        timezone_name: str = "UTC",
     ) -> list[NoteCreationStat]:
         raise NotImplementedError

@@ -1,9 +1,9 @@
-from datetime import datetime
 from uuid import UUID, uuid4
 
 from brain.application.abstractions.repositories.api_keys import IApiKeysRepository
 from brain.application.interactors.auth.dto import CreatedApiKey
 from brain.domain.entities.api_key import ApiKey
+from brain.domain.time import utc_now
 from brain.domain.services.api_keys import IApiKeyService
 
 
@@ -23,7 +23,7 @@ class CreateApiKeyInteractor:
             user_id=user_id,
             name=name,
             key_hash=self._api_key_service.hash_key(generated_key),
-            created_at=datetime.utcnow(),
+            created_at=utc_now(),
         )
         await self._api_keys_repo.create(api_key)
         return CreatedApiKey(

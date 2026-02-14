@@ -1,4 +1,3 @@
-from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import select, bindparam, text
@@ -8,6 +7,7 @@ from brain.application.abstractions.repositories.users import IUsersRepository
 from brain.domain.entities.user import User
 from brain.infrastructure.db.mappers.users import map_user_to_dm, map_user_to_db
 from brain.infrastructure.db.models.user import UserDB
+from brain.domain.time import utc_now
 
 
 class UsersRepository(IUsersRepository):
@@ -33,7 +33,7 @@ class UsersRepository(IUsersRepository):
         old_db_model.first_name = entity.first_name
         old_db_model.last_name = entity.last_name
         old_db_model.profile_picture_file_id = entity.profile_picture_file_id
-        old_db_model.updated_at = datetime.utcnow()
+        old_db_model.updated_at = utc_now()
         await self._session.commit()
 
     async def get_by_telegram_id(self, telegram_id: int) -> User | None:

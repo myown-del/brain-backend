@@ -14,6 +14,7 @@ from brain.infrastructure.db.mappers.notes import map_note_to_db, map_note_to_dm
 from brain.infrastructure.db.models.keyword import KeywordDB
 from brain.infrastructure.db.models.note import NoteDB
 from brain.infrastructure.db.models.user import UserDB
+from brain.domain.time import ensure_utc_datetime, utc_now
 
 
 class NotesRepository(INotesRepository):
@@ -37,6 +38,8 @@ class NotesRepository(INotesRepository):
             .join(UserDB)
             .where(UserDB.telegram_id == telegram_id)
         )  # fmt: skip
+        from_date = ensure_utc_datetime(from_date)
+        to_date = ensure_utc_datetime(to_date)
         if from_date:
             query = query.where(NoteDB.created_at >= from_date)
         if to_date:
@@ -120,7 +123,7 @@ class NotesRepository(INotesRepository):
         db_model.text = entity.text
         db_model.represents_keyword_id = entity.represents_keyword_id
         db_model.is_pinned = entity.is_pinned
-        db_model.updated_at = entity.updated_at or datetime.utcnow()
+        db_model.updated_at = ensure_utc_datetime(entity.updated_at) or utc_now()
         await self._session.commit()
 
     async def delete_all(self):
@@ -260,8 +263,11 @@ class NotesRepository(INotesRepository):
     async def get_note_creation_stats_by_user_telegram_id(
         self,
         telegram_id: int,
+        timezone_name: str = "UTC",
     ) -> list[NoteCreationStat]:
-        created_date = func.date(NoteDB.created_at).label("created_date")
+        created_date = func.date(func.timezone(timezone_name, NoteDB.created_at)).label(
+            "created_date",
+        )
         stmt = (
             select(created_date, func.count(NoteDB.id))
             .join(UserDB)

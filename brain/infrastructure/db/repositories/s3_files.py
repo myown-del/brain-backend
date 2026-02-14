@@ -1,4 +1,3 @@
-from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import select, bindparam, text
@@ -12,6 +11,7 @@ from brain.infrastructure.db.mappers.s3_files import (
 )
 from brain.infrastructure.db.models.s3 import S3FileDB
 from brain.infrastructure.db.models.user import UserDB
+from brain.domain.time import utc_now
 
 
 class S3FilesRepository(IS3FilesRepository):
@@ -35,7 +35,7 @@ class S3FilesRepository(IS3FilesRepository):
         old_db_model = await self._get_db_by_id(entity.id)
         old_db_model.object_name = entity.object_name
         old_db_model.content_type = entity.content_type
-        old_db_model.updated_at = datetime.utcnow()
+        old_db_model.updated_at = utc_now()
         await self._session.commit()
 
     async def get_by_user_id(self, user_id: UUID) -> S3File | None:

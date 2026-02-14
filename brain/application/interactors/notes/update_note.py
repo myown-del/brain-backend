@@ -1,4 +1,3 @@
-from datetime import datetime
 from uuid import UUID
 
 from brain.application.abstractions.repositories.keywords import IKeywordsRepository
@@ -17,6 +16,7 @@ from brain.domain.services.diffs import apply_patch, get_diffs, check_if_ranges_
 from brain.application.types import Unset
 
 from brain.domain.services.keywords import collect_cleanup_keyword_names
+from brain.domain.time import utc_now
 
 
 class UpdateNoteInteractor:
@@ -66,7 +66,7 @@ class UpdateNoteInteractor:
                 title=note.title,
             )
 
-        note.updated_at = datetime.utcnow()
+        note.updated_at = utc_now()
 
         # Apply patch if present
         if note_data.patch and note_data.patch is not Unset:

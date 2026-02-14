@@ -2,11 +2,16 @@ from dataclasses import asdict
 
 from uuid import UUID
 
-from brain.application.interactors.notes.dto import CreateNote, UpdateNote
+from brain.application.interactors.notes.dto import (
+    CreateNote,
+    CreateNoteFromDraft,
+    UpdateNote,
+)
 from brain.domain.entities.note import Note
 from brain.domain.entities.user import User
 from brain.presentation.api.routes.notes.models import (
     CreateNoteSchema,
+    CreateNoteFromDraftSchema,
     ReadNoteSchema,
     UpdateNoteSchema,
     WikilinkSuggestionSchema,
@@ -47,6 +52,17 @@ def map_update_schema_to_dto(
         text=payload.get("text", Unset),
         patch=payload.get("patch", Unset),
         is_pinned=payload.get("is_pinned", Unset),
+    )
+
+
+def map_create_from_draft_schema_to_dto(
+    schema: CreateNoteFromDraftSchema,
+    user: User,
+) -> CreateNoteFromDraft:
+    return CreateNoteFromDraft(
+        by_user_telegram_id=user.telegram_id,
+        draft_id=schema.draft_id,
+        title=schema.title,
     )
 
 

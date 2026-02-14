@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 from sqlalchemy import delete, func, select, text
@@ -6,10 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from brain.application.abstractions.repositories.drafts import IDraftsRepository
+from brain.application.abstractions.repositories.models import DraftCreationStat
 from brain.domain.entities.draft import Draft
 from brain.infrastructure.db.mappers.drafts import map_draft_to_db, map_draft_to_dm
 from brain.infrastructure.db.models.draft import DraftDB
 from brain.infrastructure.db.models.hashtag import DraftHashtagDB
+from brain.domain.time import ensure_utc_datetime, utc_now
 
 
 class DraftsRepository(IDraftsRepository):
@@ -25,6 +27,8 @@ class DraftsRepository(IDraftsRepository):
         hashtags: list[str] | None = None,
     ):
         stmt = stmt.where(DraftDB.user_id == user_id)
+        from_date = ensure_utc_datetime(from_date)
+        to_date = ensure_utc_datetime(to_date)
         if from_date:
             stmt = stmt.where(DraftDB.created_at >= from_date)
         if to_date:
@@ -111,7 +115,7 @@ class DraftsRepository(IDraftsRepository):
         if db_model is None:
             return
         db_model.text = entity.text
-        db_model.updated_at = entity.updated_at or datetime.utcnow()
+        db_model.updated_at = ensure_utc_datetime(entity.updated_at) or utc_now()
         await self._session.commit()
 
     async def delete_by_id(self, draft_id: UUID) -> None:
@@ -127,3 +131,33 @@ class DraftsRepository(IDraftsRepository):
         await self._session.execute(delete(DraftHashtagDB))
         await self._session.execute(text("DELETE FROM drafts"))
         await self._session.commit()
+
+    async def get_draft_creation_stats_by_user_id(
+        self,
+        user_id: UUID,
+        timezone_name: str = "UTC",
+    ) -> list[DraftCreationStat]:
+        created_date = func.date(func.timezone(timezone_name, DraftDB.created_at)).label(
+            "created_date",
+        )
+        stmt = (
+            select(created_date, func.count(DraftDB.id))
+            .where(DraftDB.user_id == user_id)
+            .group_by(created_date)
+            .order_by(created_date.asc())
+        )
+        result = await self._session.execute(stmt)
+
+        stats: list[DraftCreationStat] = []
+        for created_at, count in result.all():
+            if isinstance(created_at, str):
+                created_at = date.fromisoformat(created_at)
+            elif isinstance(created_at, datetime):
+                created_at = created_at.date()
+            stats.append(
+                DraftCreationStat(
+                    date=created_at,
+                    count=int(count or 0),
+                ),
+            )
+        return stats

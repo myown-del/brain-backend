@@ -18,4 +18,8 @@ class ApiKeyDB(Base):
     )
     name: Mapped[str] = mapped_column(String(length=255), nullable=False)
     key_hash: Mapped[str] = mapped_column(String(length=64), nullable=False, unique=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )

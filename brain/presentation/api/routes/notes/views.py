@@ -4,10 +4,12 @@ from uuid import UUID
 from dishka import FromDishka
 from dishka.integrations.fastapi import inject
 from fastapi import Depends, APIRouter, HTTPException, Query, Response, UploadFile, File
+from pytz import timezone as pytz_timezone, UnknownTimeZoneError
 from starlette import status
 
 from brain.application.interactors import (
     CreateNoteInteractor,
+    CreateNoteFromDraftInteractor,
     DeleteNoteInteractor,
     GetNoteInteractor,
     GetNoteCreationStatsInteractor,
@@ -25,10 +27,15 @@ from brain.application.interactors.notes.exceptions import (
     NoteTitleAlreadyExistsException,
     NoteTitleRequiredException,
 )
+from brain.application.interactors.notes.create_note_from_draft import (
+    DraftForbiddenException,
+)
+from brain.application.interactors.drafts.exceptions import DraftNotFoundException
 from brain.domain.entities.user import User
 from brain.presentation.api.dependencies.auth import get_notes_user_from_request
 from brain.presentation.api.routes.notes.mappers import (
     map_create_schema_to_dto,
+    map_create_from_draft_schema_to_dto,
     map_note_to_read_schema,
     map_update_schema_to_dto,
     map_wikilink_suggestion_to_schema,
@@ -37,11 +44,13 @@ from brain.presentation.api.routes.notes.mappers import (
 from brain.presentation.api.routes.notes.models import (
     ReadNoteSchema,
     CreateNoteSchema,
+    CreateNoteFromDraftSchema,
     UpdateNoteSchema,
     WikilinkSuggestionSchema,
     NoteCreationStatSchema,
     NewNoteTitleSchema,
 )
+from brain.domain.time import ensure_utc_datetime
 
 
 @inject
@@ -52,6 +61,8 @@ async def get_notes(
     pinned_first: bool = Query(True),
     user: User = Depends(get_notes_user_from_request),
 ):
+    from_date = ensure_utc_datetime(from_date)
+    to_date = ensure_utc_datetime(to_date)
     notes = await interactor.get_notes(
         user.telegram_id,
         from_date=from_date,
@@ -116,6 +127,46 @@ async def create_note(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Keyword not found",
         )
+    note = await get_note_interactor.get_note_by_id(note_id)
+    return map_note_to_read_schema(note)
+
+
+@inject
+async def create_note_from_draft(
+    create_from_draft_interactor: FromDishka[CreateNoteFromDraftInteractor],
+    get_note_interactor: FromDishka[GetNoteInteractor],
+    body: CreateNoteFromDraftSchema,
+    user: User = Depends(get_notes_user_from_request),
+):
+    data = map_create_from_draft_schema_to_dto(schema=body, user=user)
+    try:
+        note_id = await create_from_draft_interactor.create_note_from_draft(data)
+    except DraftNotFoundException:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Draft not found",
+        )
+    except DraftForbiddenException:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden",
+        )
+    except NoteTitleRequiredException:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Note title cannot be null",
+        )
+    except NoteTitleAlreadyExistsException:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Note title must be unique",
+        )
+    except KeywordNotFoundException:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Keyword not found",
+        )
+
     note = await get_note_interactor.get_note_by_id(note_id)
     return map_note_to_read_schema(note)
 
@@ -220,9 +271,20 @@ async def import_notes(
 @inject
 async def get_note_creation_stats(
     interactor: FromDishka[GetNoteCreationStatsInteractor],
+    timezone: str = Query("UTC"),
     user: User = Depends(get_notes_user_from_request),
 ):
-    stats = await interactor.get_stats(user.telegram_id)
+    try:
+        pytz_timezone(timezone)
+    except UnknownTimeZoneError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid timezone",
+        )
+    stats = await interactor.get_stats(
+        user.telegram_id,
+        timezone_name=timezone,
+    )
     return [map_note_creation_stat_to_schema(stat) for stat in stats]
 
 
@@ -283,6 +345,14 @@ def get_router() -> APIRouter:
         methods=["POST"],
         response_model=ReadNoteSchema,
         summary="Create note",
+        status_code=status.HTTP_201_CREATED,
+    )
+    router.add_api_route(
+        path="/create-from-draft",
+        endpoint=create_note_from_draft,
+        methods=["POST"],
+        response_model=ReadNoteSchema,
+        summary="Create note from draft",
         status_code=status.HTTP_201_CREATED,
     )
     router.add_api_route(

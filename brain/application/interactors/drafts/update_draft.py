@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from brain.application.abstractions.repositories.drafts import IDraftsRepository
 from brain.application.interactors.drafts.dto import UpdateDraft
 from brain.application.interactors.drafts.exceptions import (
@@ -9,6 +7,7 @@ from brain.application.interactors.drafts.exceptions import (
 from brain.application.services.draft_hashtag_sync import DraftHashtagSyncService
 from brain.application.types import Unset
 from brain.domain.entities.draft import Draft
+from brain.domain.time import utc_now
 from brain.domain.services.diffs import apply_patch
 
 
@@ -34,7 +33,7 @@ class UpdateDraftInteractor:
         elif draft_data.text is not Unset:
             draft.text = draft_data.text
 
-        draft.updated_at = datetime.utcnow()
+        draft.updated_at = utc_now()
         await self._drafts_repo.update(draft)
         draft.hashtags = await self._hashtag_sync_service.sync(
             draft_id=draft.id,

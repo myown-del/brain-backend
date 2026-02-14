@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from uuid import UUID
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel
 
 
 class ReadNoteSchema(BaseModel):
@@ -16,6 +16,11 @@ class ReadNoteSchema(BaseModel):
 class CreateNoteSchema(BaseModel):
     title: str | None = None
     text: str | None = None
+
+
+class CreateNoteFromDraftSchema(BaseModel):
+    draft_id: UUID
+    title: str | None = None
 
 
 class UpdateNoteSchema(BaseModel):

@@ -1,4 +1,5 @@
 from brain.domain.entities.api_key import ApiKey
+from brain.infrastructure.db.mappers import normalize_datetime
 from brain.infrastructure.db.models.api_key import ApiKeyDB
 
 
@@ -8,7 +9,7 @@ def map_api_key_to_dm(api_key: ApiKeyDB) -> ApiKey:
         user_id=api_key.user_id,
         name=api_key.name,
         key_hash=api_key.key_hash,
-        created_at=api_key.created_at,
+        created_at=normalize_datetime(api_key.created_at),
     )
 
 
@@ -18,5 +19,6 @@ def map_api_key_to_db(api_key: ApiKey) -> ApiKeyDB:
         user_id=api_key.user_id,
         name=api_key.name,
         key_hash=api_key.key_hash,
-        created_at=api_key.created_at,
+        created_at=normalize_datetime(api_key.created_at),
     )
+

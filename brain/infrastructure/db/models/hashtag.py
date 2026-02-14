@@ -15,7 +15,7 @@ class HashtagDB(Base):
 
     text: Mapped[str] = mapped_column(String(length=255), primary_key=True)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True),
         nullable=False,
         default=utcnow_wrapper,
         server_default=func.now(),

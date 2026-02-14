@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 from dishka import AsyncContainer
@@ -42,8 +42,8 @@ async def test_fake_auth_creates_tokens(
         payload = response.json()
         assert payload["access_token"]
         assert payload["refresh_token"]
-        assert datetime.fromisoformat(payload["expires_at"])
-        assert datetime.fromisoformat(payload["refresh_expires_at"])
+        assert datetime.fromisoformat(payload["expires_at"]).tzinfo == timezone.utc
+        assert datetime.fromisoformat(payload["refresh_expires_at"]).tzinfo == timezone.utc
     finally:
         config.auth.admin_token = original_admin_token
 

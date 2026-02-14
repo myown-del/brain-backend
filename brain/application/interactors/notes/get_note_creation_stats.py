@@ -9,5 +9,9 @@ class GetNoteCreationStatsInteractor:
     async def get_stats(
         self,
         user_telegram_id: int,
+        timezone_name: str = "UTC",
     ) -> list[NoteCreationStat]:
-        return await self._notes_repo.get_note_creation_stats_by_user_telegram_id(user_telegram_id)
+        return await self._notes_repo.get_note_creation_stats_by_user_telegram_id(
+            telegram_id=user_telegram_id,
+            timezone_name=timezone_name,
+        )

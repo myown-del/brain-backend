@@ -12,3 +12,9 @@ class WikilinkSuggestion:
 class NoteCreationStat:
     date: date
     count: int
+
+
+@dataclass
+class DraftCreationStat:
+    date: date
+    count: int

@@ -4,6 +4,7 @@ from typing import Protocol
 from uuid import UUID
 
 from brain.domain.entities.draft import Draft
+from brain.application.abstractions.repositories.models import DraftCreationStat
 
 
 class IDraftsRepository(Protocol):
@@ -46,4 +47,12 @@ class IDraftsRepository(Protocol):
 
     @abstractmethod
     async def delete_all(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_draft_creation_stats_by_user_id(
+        self,
+        user_id: UUID,
+        timezone_name: str = "UTC",
+    ) -> list[DraftCreationStat]:
         raise NotImplementedError

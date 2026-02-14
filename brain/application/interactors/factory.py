@@ -2,11 +2,13 @@ from dishka import Provider, Scope, provide
 
 from brain.application.interactors import (
     CreateNoteInteractor,
+    CreateNoteFromDraftInteractor,
     DeleteNoteInteractor,
     CreateDraftInteractor,
     DeleteDraftInteractor,
     GetDraftInteractor,
     GetDraftsInteractor,
+    GetDraftCreationStatsInteractor,
     SearchDraftsByTextInteractor,
     UpdateDraftInteractor,
     GetGraphInteractor,
@@ -53,6 +55,7 @@ class InteractorProvider(Provider):
     get_draft_hashtag_sync_service = provide(DraftHashtagSyncService, scope=Scope.REQUEST)
     get_note_keyword_sync_service = provide(NoteKeywordSyncService, scope=Scope.REQUEST)
     get_create_note_interactor = provide(CreateNoteInteractor, scope=Scope.REQUEST)
+    get_create_note_from_draft_interactor = provide(CreateNoteFromDraftInteractor, scope=Scope.REQUEST)
     get_create_draft_interactor = provide(CreateDraftInteractor, scope=Scope.REQUEST)
     get_update_note_interactor = provide(UpdateNoteInteractor, scope=Scope.REQUEST)
     get_update_draft_interactor = provide(UpdateDraftInteractor, scope=Scope.REQUEST)
@@ -60,6 +63,7 @@ class InteractorProvider(Provider):
     get_delete_draft_interactor = provide(DeleteDraftInteractor, scope=Scope.REQUEST)
     get_get_notes_interactor = provide(GetNotesInteractor, scope=Scope.REQUEST)
     get_get_drafts_interactor = provide(GetDraftsInteractor, scope=Scope.REQUEST)
+    get_get_draft_creation_stats_interactor = provide(GetDraftCreationStatsInteractor, scope=Scope.REQUEST)
     get_get_note_creation_stats_interactor = provide(GetNoteCreationStatsInteractor, scope=Scope.REQUEST)
     get_get_note_interactor = provide(GetNoteInteractor, scope=Scope.REQUEST)
     get_get_draft_interactor = provide(GetDraftInteractor, scope=Scope.REQUEST)

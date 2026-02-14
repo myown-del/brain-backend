@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from uuid import uuid4
 
 import pytest
@@ -11,6 +11,7 @@ from brain.application.interactors.auth.exceptions import (
     JwtTokenInvalidException,
 )
 from brain.application.interactors.auth.interactor import AuthInteractor
+from brain.domain.time import utc_now
 from brain.domain.entities.jwt import JwtRefreshToken
 from brain.domain.entities.user import User
 
@@ -91,15 +92,15 @@ async def test_refresh_tokens_rejects_expired_record(
     valid_jwt = token_verifier.create_token(
         payload={
             "user_id": user.id,
-            "exp": datetime.utcnow() + timedelta(hours=1),
+            "exp": utc_now() + timedelta(hours=1),
         },
     )
     expired_record = JwtRefreshToken(
         id=uuid4(),
         user_id=user.id,
         token=valid_jwt.access_token,
-        expires_at=datetime.utcnow() - timedelta(seconds=1),
-        created_at=datetime.utcnow(),
+        expires_at=utc_now() - timedelta(seconds=1),
+        created_at=utc_now(),
     )
     await jwt_repo.create(expired_record)
 

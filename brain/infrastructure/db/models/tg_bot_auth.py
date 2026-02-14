@@ -18,4 +18,8 @@ class TelegramBotAuthSessionDB(Base):
         ForeignKey("jwt_refresh_tokens.id", ondelete="SET NULL", onupdate="CASCADE"),
         nullable=True,
     )
-    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )

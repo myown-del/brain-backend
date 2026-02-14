@@ -1,13 +1,14 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
+from brain.domain.time import utc_now
 from brain.application.abstractions.token_verifier import TokenExpiredError
 from brain.infrastructure.jwt.service import JwtService
 
 
 def test_jwt_expiration_calculation(freezer):
-    current_time = datetime.utcnow()
+    current_time = utc_now()
     access_token_lifetime_seconds = 1000
 
     jwt_service = JwtService(
@@ -24,6 +25,7 @@ def test_jwt_expiration_calculation(freezer):
 
     real_expires_at_timestamp = int(jwt_token_encoded.expires_at.timestamp())
     assert real_expires_at_timestamp == expected_expires_at_timestamp
+    assert jwt_token_encoded.expires_at.tzinfo == timezone.utc
 
 
 def test_jwt_encoding_decoding(freezer):

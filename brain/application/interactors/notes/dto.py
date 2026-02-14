@@ -11,6 +11,13 @@ class CreateNote:
 
 
 @dataclass
+class CreateNoteFromDraft:
+    by_user_telegram_id: int
+    draft_id: UUID
+    title: str | None
+
+
+@dataclass
 class UpdateNote:
     note_id: UUID
     title: str | None | UnsetType = Unset

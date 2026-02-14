@@ -2,7 +2,6 @@ import json
 import zipfile
 import io
 from uuid import uuid4, UUID
-from datetime import datetime
 
 from brain.application.abstractions.repositories.notes import INotesRepository
 from brain.application.abstractions.repositories.notes_graph import (
@@ -14,6 +13,7 @@ from brain.application.services.note_titles import NoteTitleService
 from brain.application.services.note_keyword_sync import NoteKeywordSyncService
 from brain.application.interactors.notes.exceptions import NoteTitleAlreadyExistsException
 from brain.domain.entities.note import Note
+from brain.domain.time import parse_iso_datetime
 
 
 class ImportNotesInteractor:
@@ -77,14 +77,14 @@ class ImportNotesInteractor:
         created_at = None
         if note_data.get("created_at"):
             try:
-                created_at = datetime.fromisoformat(note_data["created_at"])
+                created_at = parse_iso_datetime(note_data["created_at"])
             except ValueError:
                 pass
 
         updated_at = None
         if note_data.get("updated_at"):
             try:
-                updated_at = datetime.fromisoformat(note_data["updated_at"])
+                updated_at = parse_iso_datetime(note_data["updated_at"])
             except ValueError:
                 pass
 

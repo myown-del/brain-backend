@@ -1,4 +1,5 @@
 from datetime import datetime
+from datetime import date
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -26,3 +27,8 @@ class SearchDraftsSchema(BaseModel):
     from_date: datetime | None = None
     to_date: datetime | None = None
     hashtags: list[str] = Field(default_factory=list)
+
+
+class DraftCreationStatSchema(BaseModel):
+    date: date
+    count: int

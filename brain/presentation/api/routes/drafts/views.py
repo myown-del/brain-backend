@@ -2,13 +2,15 @@ from uuid import UUID
 
 from dishka import FromDishka
 from dishka.integrations.fastapi import inject
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pytz import timezone as pytz_timezone, UnknownTimeZoneError
 from starlette import status
 
 from brain.application.interactors import (
     CreateDraftInteractor,
     DeleteDraftInteractor,
     GetDraftInteractor,
+    GetDraftCreationStatsInteractor,
     GetDraftsInteractor,
     SearchDraftsByTextInteractor,
     UpdateDraftInteractor,
@@ -21,11 +23,13 @@ from brain.domain.entities.user import User
 from brain.presentation.api.dependencies.auth import get_notes_user_from_request
 from brain.presentation.api.routes.drafts.mappers import (
     map_create_schema_to_dto,
+    map_draft_creation_stat_to_schema,
     map_draft_to_read_schema,
     map_update_schema_to_dto,
 )
 from brain.presentation.api.routes.drafts.models import (
     CreateDraftSchema,
+    DraftCreationStatSchema,
     ReadDraftSchema,
     SearchDraftsSchema,
     UpdateDraftSchema,
@@ -153,6 +157,26 @@ async def update_draft(
     return map_draft_to_read_schema(updated_draft)
 
 
+@inject
+async def get_draft_creation_stats(
+    interactor: FromDishka[GetDraftCreationStatsInteractor],
+    timezone: str = Query("UTC"),
+    user: User = Depends(get_notes_user_from_request),
+):
+    try:
+        pytz_timezone(timezone)
+    except UnknownTimeZoneError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid timezone",
+        )
+    stats = await interactor.get_stats(
+        user_id=user.id,
+        timezone_name=timezone,
+    )
+    return [map_draft_creation_stat_to_schema(stat) for stat in stats]
+
+
 def get_router() -> APIRouter:
     router = APIRouter(prefix="/drafts")
     router.add_api_route(
@@ -169,6 +193,14 @@ def get_router() -> APIRouter:
         methods=["POST"],
         response_model=list[ReadDraftSchema],
         summary="Search drafts with filters",
+        status_code=status.HTTP_200_OK,
+    )
+    router.add_api_route(
+        path="/creation-stats",
+        endpoint=get_draft_creation_stats,
+        methods=["GET"],
+        response_model=list[DraftCreationStatSchema],
+        summary="Get draft creation stats by date",
         status_code=status.HTTP_200_OK,
     )
     router.add_api_route(

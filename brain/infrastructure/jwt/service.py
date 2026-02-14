@@ -11,6 +11,7 @@ from brain.application.abstractions.token_verifier import (
     TokenInvalidError,
 )
 from brain.domain.entities.jwt import JwtAccessToken
+from brain.domain.time import ensure_utc_datetime, utc_now
 
 
 class UUIDEncoder(JSONEncoder):
@@ -34,9 +35,12 @@ class JwtService(TokenVerifier):
     def create_token(self, payload: dict) -> JwtAccessToken:
         expires_at = payload.get("exp")
         if expires_at is None:
-            expires_at = datetime.utcnow() + timedelta(
+            expires_at = utc_now() + timedelta(
                 seconds=self._access_token_lifetime,
             )
+            payload["exp"] = expires_at
+        elif isinstance(expires_at, datetime):
+            expires_at = ensure_utc_datetime(expires_at)
             payload["exp"] = expires_at
 
         encoded_jwt = jwt.encode(

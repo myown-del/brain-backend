@@ -1,5 +1,5 @@
 from dataclasses import asdict
-from datetime import datetime, timedelta
+from datetime import timedelta
 from uuid import UUID, uuid4
 
 from brain.application.interactors.users.get_user import GetUserInteractor
@@ -19,6 +19,7 @@ from brain.application.abstractions.repositories.jwt import (
 
 from brain.config.models import AuthenticationConfig
 from brain.domain.entities.jwt import JwtAccessToken, FullJwtToken, JwtRefreshToken
+from brain.domain.time import ensure_utc_datetime, utc_now
 from brain.domain.entities.user import User
 
 
@@ -51,7 +52,7 @@ class AuthInteractor:
         )
 
     async def _create_refresh_token_for_user(self, user_id: UUID) -> JwtRefreshToken:
-        refresh_expires_at = datetime.utcnow() + timedelta(
+        refresh_expires_at = utc_now() + timedelta(
             seconds=self._auth_config.refresh_token_lifetime,
         )
         refresh_jwt = self._jwt_service.create_token(
@@ -65,7 +66,7 @@ class AuthInteractor:
             user_id=user_id,
             token=refresh_jwt.access_token,
             expires_at=refresh_expires_at,
-            created_at=datetime.utcnow(),
+            created_at=utc_now(),
         )
         await self._jwt_repo.create(refresh_token)
         return refresh_token
@@ -113,7 +114,8 @@ class AuthInteractor:
         token_record = await self._jwt_repo.get_by_token(refresh_token)
         if not token_record:
             raise JwtTokenInvalidException()
-        if token_record.expires_at < datetime.utcnow():
+        token_expires_at = ensure_utc_datetime(token_record.expires_at)
+        if token_expires_at < utc_now():
             raise JwtTokenExpiredException()
         if token_record.user_id != payload.user_id:
             raise JwtTokenInvalidException()
@@ -132,7 +134,8 @@ class AuthInteractor:
         refresh_token = await self._jwt_repo.get_by_id(token_id)
         if not refresh_token:
             return None
-        if refresh_token.expires_at < datetime.utcnow():
+        refresh_expires_at = ensure_utc_datetime(refresh_token.expires_at)
+        if refresh_expires_at < utc_now():
             return None
 
         access_token = self._create_access_token_for_user(refresh_token.user_id)

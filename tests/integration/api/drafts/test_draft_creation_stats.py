@@ -1,33 +1,33 @@
 from datetime import datetime
 
-from tests.integration.api.notes.helpers import create_keyword_note
+from tests.integration.api.drafts.helpers import create_draft
 
 
-async def test_get_note_creation_stats(notes_app, api_client, repo_hub, user):
-    await create_keyword_note(
+async def test_get_draft_creation_stats(notes_app, api_client, repo_hub, user):
+    await create_draft(
         repo_hub=repo_hub,
         user=user,
-        title="Note 1",
+        text="Draft 1",
         created_at=datetime(2024, 1, 1, 10, 0, 0),
         updated_at=datetime(2024, 1, 1, 10, 0, 0),
     )
-    await create_keyword_note(
+    await create_draft(
         repo_hub=repo_hub,
         user=user,
-        title="Note 2",
+        text="Draft 2",
         created_at=datetime(2024, 1, 1, 12, 0, 0),
         updated_at=datetime(2024, 1, 1, 12, 0, 0),
     )
-    await create_keyword_note(
+    await create_draft(
         repo_hub=repo_hub,
         user=user,
-        title="Note 3",
+        text="Draft 3",
         created_at=datetime(2024, 1, 2, 9, 0, 0),
         updated_at=datetime(2024, 1, 2, 9, 0, 0),
     )
 
     async with api_client(notes_app) as client:
-        response = await client.get("/api/notes/creation-stats")
+        response = await client.get("/api/drafts/creation-stats")
 
     assert response.status_code == 200
     assert response.json() == [
@@ -36,24 +36,24 @@ async def test_get_note_creation_stats(notes_app, api_client, repo_hub, user):
     ]
 
 
-async def test_get_note_creation_stats_with_timezone(notes_app, api_client, repo_hub, user):
-    await create_keyword_note(
+async def test_get_draft_creation_stats_with_timezone(notes_app, api_client, repo_hub, user):
+    await create_draft(
         repo_hub=repo_hub,
         user=user,
-        title="Boundary Note 1",
+        text="Boundary Draft 1",
         created_at=datetime(2024, 1, 2, 0, 30, 0),
         updated_at=datetime(2024, 1, 2, 0, 30, 0),
     )
-    await create_keyword_note(
+    await create_draft(
         repo_hub=repo_hub,
         user=user,
-        title="Boundary Note 2",
+        text="Boundary Draft 2",
         created_at=datetime(2024, 1, 2, 8, 30, 0),
         updated_at=datetime(2024, 1, 2, 8, 30, 0),
     )
 
     async with api_client(notes_app) as client:
-        response = await client.get("/api/notes/creation-stats?timezone=America/Los_Angeles")
+        response = await client.get("/api/drafts/creation-stats?timezone=America/Los_Angeles")
 
     assert response.status_code == 200
     assert response.json() == [
@@ -62,13 +62,13 @@ async def test_get_note_creation_stats_with_timezone(notes_app, api_client, repo
     ]
 
 
-async def test_get_note_creation_stats_invalid_timezone_returns_bad_request(
+async def test_get_draft_creation_stats_invalid_timezone_returns_bad_request(
     notes_app,
     api_client,
     user,
 ):
     async with api_client(notes_app) as client:
-        response = await client.get("/api/notes/creation-stats?timezone=Bad/Timezone")
+        response = await client.get("/api/drafts/creation-stats?timezone=Bad/Timezone")
 
     assert response.status_code == 400
     assert response.json() == {"detail": "Invalid timezone"}
