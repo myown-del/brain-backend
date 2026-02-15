@@ -1,5 +1,5 @@
 from datetime import datetime
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from brain.domain.entities.draft import Draft
 from brain.domain.entities.user import User
@@ -11,6 +11,7 @@ async def create_draft(
     repo_hub: RepositoryHub,
     user: User,
     text: str | None = None,
+    file_id: UUID | None = None,
     created_at: datetime | None = None,
     updated_at: datetime | None = None,
     hashtags: list[str] | None = None,
@@ -19,6 +20,7 @@ async def create_draft(
         id=uuid4(),
         user_id=user.id,
         text=text,
+        file_id=file_id,
         created_at=created_at,
         updated_at=updated_at,
     )

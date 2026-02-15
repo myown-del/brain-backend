@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pytz import timezone as pytz_timezone, UnknownTimeZoneError
 from starlette import status
 
+from brain.config.models import S3Config
 from brain.application.interactors import (
     CreateDraftInteractor,
     DeleteDraftInteractor,
@@ -38,15 +39,17 @@ from brain.presentation.api.routes.drafts.models import (
 
 @inject
 async def get_drafts(
+    s3_config: FromDishka[S3Config],
     interactor: FromDishka[GetDraftsInteractor],
     user: User = Depends(get_notes_user_from_request),
 ):
     drafts = await interactor.get_drafts(user_id=user.id)
-    return [map_draft_to_read_schema(draft) for draft in drafts]
+    return [map_draft_to_read_schema(draft, s3_config) for draft in drafts]
 
 
 @inject
 async def search_drafts(
+    s3_config: FromDishka[S3Config],
     get_interactor: FromDishka[GetDraftsInteractor],
     search_interactor: FromDishka[SearchDraftsByTextInteractor],
     body: SearchDraftsSchema,
@@ -67,11 +70,12 @@ async def search_drafts(
             to_date=body.to_date,
             hashtags=body.hashtags,
         )
-    return [map_draft_to_read_schema(draft) for draft in drafts]
+    return [map_draft_to_read_schema(draft, s3_config) for draft in drafts]
 
 
 @inject
 async def create_draft(
+    s3_config: FromDishka[S3Config],
     create_interactor: FromDishka[CreateDraftInteractor],
     get_interactor: FromDishka[GetDraftInteractor],
     draft: CreateDraftSchema,
@@ -86,7 +90,7 @@ async def create_draft(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Draft not found",
         )
-    return map_draft_to_read_schema(created_draft)
+    return map_draft_to_read_schema(created_draft, s3_config)
 
 
 @inject
@@ -118,6 +122,7 @@ async def delete_draft(
 
 @inject
 async def update_draft(
+    s3_config: FromDishka[S3Config],
     get_interactor: FromDishka[GetDraftInteractor],
     update_interactor: FromDishka[UpdateDraftInteractor],
     draft_id: UUID,
@@ -154,7 +159,7 @@ async def update_draft(
             detail="Failed to apply patch",
         )
 
-    return map_draft_to_read_schema(updated_draft)
+    return map_draft_to_read_schema(updated_draft, s3_config)
 
 
 @inject

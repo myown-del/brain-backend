@@ -32,6 +32,8 @@ class UpdateDraftInteractor:
                 raise DraftPatchApplyException() from exc
         elif draft_data.text is not Unset:
             draft.text = draft_data.text
+        if draft_data.file_id is not Unset:
+            draft.file_id = draft_data.file_id
 
         draft.updated_at = utc_now()
         await self._drafts_repo.update(draft)

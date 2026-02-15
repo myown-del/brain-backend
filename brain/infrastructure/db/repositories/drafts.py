@@ -50,7 +50,7 @@ class DraftsRepository(IDraftsRepository):
     async def get_by_id(self, draft_id: UUID) -> Draft | None:
         stmt = (
             select(DraftDB)
-            .options(selectinload(DraftDB.hashtags))
+            .options(selectinload(DraftDB.hashtags), selectinload(DraftDB.file))
             .where(DraftDB.id == draft_id)
         )
         result = await self._session.execute(stmt)
@@ -66,7 +66,7 @@ class DraftsRepository(IDraftsRepository):
         to_date: datetime | None = None,
         hashtags: list[str] | None = None,
     ) -> list[Draft]:
-        stmt = select(DraftDB).options(selectinload(DraftDB.hashtags))
+        stmt = select(DraftDB).options(selectinload(DraftDB.hashtags), selectinload(DraftDB.file))
         stmt = self._apply_common_filters(
             stmt=stmt,
             user_id=user_id,
@@ -93,7 +93,7 @@ class DraftsRepository(IDraftsRepository):
 
         stmt = (
             select(DraftDB)
-            .options(selectinload(DraftDB.hashtags))
+            .options(selectinload(DraftDB.hashtags), selectinload(DraftDB.file))
             .where(func.lower(func.coalesce(DraftDB.text, "")).like(f"%{normalized_query}%"))
         )
         stmt = self._apply_common_filters(
@@ -115,6 +115,7 @@ class DraftsRepository(IDraftsRepository):
         if db_model is None:
             return
         db_model.text = entity.text
+        db_model.file_id = entity.file_id
         db_model.updated_at = ensure_utc_datetime(entity.updated_at) or utc_now()
         await self._session.commit()
 

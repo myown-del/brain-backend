@@ -20,6 +20,7 @@ class CreateDraftInteractor:
             id=uuid4(),
             user_id=draft_data.user_id,
             text=draft_data.text,
+            file_id=draft_data.file_id,
         )
         await self._drafts_repo.create(draft)
         draft.hashtags = await self._hashtag_sync_service.sync(

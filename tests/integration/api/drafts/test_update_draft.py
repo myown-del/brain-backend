@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from starlette import status
 
 from brain.domain.entities.user import User
+from brain.domain.entities.s3_file import S3File
 from brain.domain.services.diffs import get_patches_str
 from brain.infrastructure.db.repositories.hub import RepositoryHub
 from tests.integration.api.conftest import ApiClientFactory
@@ -153,3 +154,44 @@ async def test_update_draft_invalid_patch_returns_bad_request(
     # check: API returns patch validation error
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["detail"] == "Failed to apply patch"
+
+
+@pytest.mark.asyncio
+async def test_update_draft_file_id(
+    notes_app: FastAPI,
+    api_client: ApiClientFactory,
+    repo_hub: RepositoryHub,
+    user: User,
+) -> None:
+    # setup: create draft and target file
+    draft = await create_draft(
+        repo_hub=repo_hub,
+        user=user,
+        text="Draft with attachment",
+    )
+    file = S3File(
+        id=uuid4(),
+        name="attach.txt",
+        path=f"uploads/{user.id}/attach.txt",
+        content_type="text/plain",
+    )
+    await repo_hub.s3_files.create(entity=file)
+
+    # action: set draft file id
+    async with api_client(notes_app) as client:
+        response = await client.request(
+            method="PATCH",
+            url=f"/api/drafts/{draft.id}",
+            json={"file_id": str(file.id)},
+        )
+
+    # check: file id is updated in response and storage
+    assert response.status_code == status.HTTP_200_OK
+    body = response.json()
+    assert body["file"] is not None
+    assert body["file"]["id"] == str(file.id)
+    assert body["file"]["path"] == file.path
+    assert body["file"]["url"].endswith(file.path)
+    stored = await repo_hub.drafts.get_by_id(draft_id=draft.id)
+    assert stored is not None
+    assert stored.file_id == file.id
