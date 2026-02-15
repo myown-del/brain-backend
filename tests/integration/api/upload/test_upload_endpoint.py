@@ -87,7 +87,7 @@ def test_upload_image(client):
     assert payload["path"] == payload["name"]
     assert UUID(payload["id"])
     assert payload["content_type"] == "image/jpeg"
-    assert payload["created_at"] is None
+    assert payload["created_at"] is not None
 
 
 def test_upload_file_supports_non_image_content(client):
@@ -103,7 +103,7 @@ def test_upload_file_supports_non_image_content(client):
     assert payload["path"] == payload["name"]
     assert UUID(payload["id"])
     assert payload["content_type"] == "application/pdf"
-    assert payload["created_at"] is None
+    assert payload["created_at"] is not None
 
 
 def test_upload_file_without_extension(client):
@@ -119,4 +119,4 @@ def test_upload_file_without_extension(client):
     assert payload["path"] == payload["name"]
     assert UUID(payload["id"])
     assert payload["content_type"] == "text/plain"
-    assert payload["created_at"] is None
+    assert payload["created_at"] is not None

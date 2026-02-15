@@ -5,6 +5,7 @@ from brain.application.abstractions.storage.files import IFileStorage
 from brain.application.interactors.file_dto import ReadFileOutput
 from brain.config.models import S3Config
 from brain.domain.entities.s3_file import S3File
+from brain.domain.time import utc_now
 from brain.domain.services.media import build_public_file_url, get_file_extension
 
 
@@ -39,6 +40,7 @@ class UploadFileInteractor:
             name=name,
             path=object_name,
             content_type=normalized_content_type,
+            created_at=utc_now(),
         )
         await self._s3_files_repo.create(entity=file)
         return ReadFileOutput(
