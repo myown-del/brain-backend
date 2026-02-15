@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
+from uuid import uuid4
 
 
 @dataclass
@@ -15,6 +16,14 @@ class FakeUser:
 class FakeMessage:
     from_user: FakeUser
     text: Optional[str] = None
+    caption: Optional[str] = None
+    photo: Optional[List[Any]] = None
+    document: Optional[Any] = None
+    video: Optional[Any] = None
+    audio: Optional[Any] = None
+    video_note: Optional[Any] = None
+    voice: Optional[Any] = None
+    bot: Optional[Any] = None
     replies: List[str] = field(default_factory=list)
 
     async def reply(self, text: str) -> None:
@@ -84,6 +93,49 @@ class FakeCreateNoteInteractor:
         self.calls.append(payload)
         if self.error:
             raise self.error
+
+
+class FakeCreateDraftInteractor:
+    def __init__(self, error: Exception | None = None):
+        self.error = error
+        self.calls: List[Any] = []
+
+    async def create_draft(self, payload: Any) -> None:
+        self.calls.append(payload)
+        if self.error:
+            raise self.error
+
+
+class FakeGetUserInteractor:
+    def __init__(self, user_id: Any | None = None, error: Exception | None = None):
+        self.error = error
+        self.calls: List[int] = []
+        self.user = type("UserStub", (), {"id": user_id or uuid4()})()
+
+    async def get_user_by_telegram_id(self, telegram_id: int) -> Any:
+        self.calls.append(telegram_id)
+        if self.error:
+            raise self.error
+        return self.user
+
+
+class FakeUploadFileInteractor:
+    def __init__(self, error: Exception | None = None):
+        self.error = error
+        self.calls: List[Dict[str, Any]] = []
+        self.file_id = uuid4()
+
+    async def upload_file(self, filename: str | None, content: bytes, content_type: str | None = None) -> Any:
+        self.calls.append(
+            {
+                "filename": filename,
+                "content": content,
+                "content_type": content_type,
+            }
+        )
+        if self.error:
+            raise self.error
+        return type("UploadedFileStub", (), {"id": self.file_id})()
 
 
 class FakeAuthSessionInteractor:
