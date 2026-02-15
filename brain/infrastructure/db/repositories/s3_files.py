@@ -11,8 +11,6 @@ from brain.infrastructure.db.mappers.s3_files import (
 )
 from brain.infrastructure.db.models.s3 import S3FileDB
 from brain.infrastructure.db.models.user import UserDB
-from brain.domain.time import utc_now
-
 
 class S3FilesRepository(IS3FilesRepository):
     def __init__(self, session: AsyncSession):
@@ -31,11 +29,16 @@ class S3FilesRepository(IS3FilesRepository):
         )
         return result.scalar()
 
+    async def get_by_id(self, file_id: UUID) -> S3File | None:
+        db_model = await self._get_db_by_id(entity_id=file_id)
+        if db_model:
+            return map_s3_file_to_dm(db_model)
+
     async def update(self, entity: S3File) -> None:
         old_db_model = await self._get_db_by_id(entity.id)
-        old_db_model.object_name = entity.object_name
+        old_db_model.name = entity.name
+        old_db_model.path = entity.path
         old_db_model.content_type = entity.content_type
-        old_db_model.updated_at = utc_now()
         await self._session.commit()
 
     async def get_by_user_id(self, user_id: UUID) -> S3File | None:

@@ -31,16 +31,19 @@ class UploadUserProfilePictureInteractor:
             raise UserNotFoundException
 
         extension = self._get_extension(content_type)
-        object_name = f"avatars/{user.id}/{uuid4()}.{extension}"
+        name = f"{uuid4()}.{extension}"
+        object_name = f"avatars/{user.id}/{name}"
+        normalized_content_type = content_type or self._default_content_type(extension)
         self._profile_picture_storage.upload(
             content=image_content,
             object_name=object_name,
-            content_type=content_type,
+            content_type=normalized_content_type,
         )
         profile_picture = S3File(
             id=uuid4(),
-            object_name=object_name,
-            content_type=content_type,
+            name=name,
+            path=object_name,
+            content_type=normalized_content_type,
         )
         existing = await self._s3_files_repo.get_by_user_id(user.id)
         if existing:
@@ -60,3 +63,10 @@ class UploadUserProfilePictureInteractor:
         if content_type == "image/webp":
             return "webp"
         return "jpg"
+
+    def _default_content_type(self, extension: str) -> str:
+        if extension == "png":
+            return "image/png"
+        if extension == "webp":
+            return "image/webp"
+        return "image/jpeg"

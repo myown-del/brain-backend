@@ -16,3 +16,9 @@ def guess_image_content_type(file_path: str | None) -> str | None:
     if extension == "webp":
         return "image/webp"
     return None
+
+
+def build_public_file_url(*, external_host: str, file_path: str) -> str:
+    base = (external_host or "").rstrip("/")
+    path = (file_path or "").lstrip("/")
+    return f"{base}/{path}"

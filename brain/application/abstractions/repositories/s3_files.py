@@ -7,6 +7,10 @@ from brain.domain.entities.s3_file import S3File
 
 class IS3FilesRepository(Protocol):
     @abstractmethod
+    async def get_by_id(self, file_id: UUID) -> S3File | None:
+        raise NotImplementedError
+
+    @abstractmethod
     async def get_by_user_id(self, user_id: UUID) -> S3File | None:
         raise NotImplementedError
 

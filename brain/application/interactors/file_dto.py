@@ -1,13 +1,13 @@
+from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel
 
-
-class ReadUploadedFileSchema(BaseModel):
+@dataclass(frozen=True)
+class ReadFileOutput:
     id: UUID
     name: str
     path: str
-    url: str
     content_type: str
     created_at: datetime | None
+    url: str

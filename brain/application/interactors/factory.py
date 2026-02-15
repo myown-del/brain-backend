@@ -25,6 +25,7 @@ from brain.application.interactors import (
     ImportNotesInteractor,
     UploadUserProfilePictureInteractor,
     UploadFileInteractor,
+    GetFileInteractor,
 )
 from brain.application.interactors.users.update_all_profile_pictures import (
     UpdateAllUsersProfilePicturesInteractor,
@@ -49,6 +50,7 @@ class InteractorProvider(Provider):
     get_get_user_interactor = provide(GetUserInteractor, scope=Scope.REQUEST)
     get_upload_user_profile_picture_interactor = provide(UploadUserProfilePictureInteractor, scope=Scope.REQUEST)
     get_upload_file_interactor = provide(UploadFileInteractor, scope=Scope.REQUEST)
+    get_get_file_interactor = provide(GetFileInteractor, scope=Scope.REQUEST)
     get_update_all_users_profile_pictures_interactor = provide(
         UpdateAllUsersProfilePicturesInteractor, scope=Scope.REQUEST
     )

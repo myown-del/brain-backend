@@ -62,7 +62,8 @@ async def test_get_me_returns_user_info(
     config = await dishka_request.get(Config)
     profile_picture = S3File(
         id=uuid4(),
-        object_name=f"avatars/{user.id}/profile.jpg",
+        name="profile.jpg",
+        path=f"avatars/{user.id}/profile.jpg",
         content_type="image/jpeg",
     )
     await repo_hub.s3_files.create(entity=profile_picture)
@@ -97,11 +98,12 @@ async def test_get_me_returns_user_info(
 
     assert payload["profile_picture"] is not None
     assert payload["profile_picture"]["id"] == str(profile_picture.id)
-    assert payload["profile_picture"]["object_name"] == profile_picture.object_name
+    assert payload["profile_picture"]["name"] == profile_picture.name
+    assert payload["profile_picture"]["path"] == profile_picture.path
     assert payload["profile_picture"]["content_type"] == "image/jpeg"
     assert (
         payload["profile_picture"]["url"]
-        == f"{config.s3.external_host}/{config.s3.bucket_name}/{profile_picture.object_name}"
+        == f"{config.s3.external_host}/{profile_picture.path}"
     )
 
 

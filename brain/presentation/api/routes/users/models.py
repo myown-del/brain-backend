@@ -6,11 +6,11 @@ from pydantic import BaseModel
 
 class ReadS3FileSchema(BaseModel):
     id: UUID
-    object_name: str
+    name: str
+    path: str
     url: str
-    content_type: str | None
+    content_type: str
     created_at: datetime | None
-    updated_at: datetime | None
 
 
 class ReadUserSchema(BaseModel):

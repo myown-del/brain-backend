@@ -27,7 +27,8 @@ async def test_upload_user_profile_picture_creates_record(
     stored = await repo_hub.s3_files.get_by_user_id(user.id)
     assert stored is not None
     assert stored.id == profile_picture.id
-    assert stored.object_name.startswith(f"avatars/{user.id}/")
+    assert f"/avatars/{user.id}/" in f"/{stored.path}"
+    assert stored.name.endswith(".jpg")
     assert stored.content_type == "image/jpeg"
     updated_user = await repo_hub.users.get_by_id(user.id)
     assert updated_user.profile_picture_file_id == profile_picture.id
@@ -58,7 +59,8 @@ async def test_upload_user_profile_picture_updates_existing_record(
     stored = await repo_hub.s3_files.get_by_user_id(user.id)
     assert stored is not None
     assert stored.id == first_profile_picture.id
-    assert stored.object_name == second_profile_picture.object_name
+    assert stored.name == second_profile_picture.name
+    assert stored.path == second_profile_picture.path
     assert stored.content_type == "image/png"
     updated_user = await repo_hub.users.get_by_id(user.id)
     assert updated_user.profile_picture_file_id == first_profile_picture.id

@@ -23,3 +23,4 @@ from .auth.session_interactor import TelegramBotAuthSessionInteractor
 from .notes.export_notes import ExportNotesInteractor
 from .notes.import_notes import ImportNotesInteractor
 from .upload_file import UploadFileInteractor
+from .get_file import GetFileInteractor

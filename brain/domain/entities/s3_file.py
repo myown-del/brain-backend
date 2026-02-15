@@ -12,7 +12,7 @@ class S3File(Entity):
     """
 
     id: UUID | None = field(default=None, kw_only=True)
-    object_name: str
-    content_type: str | None = field(default=None, kw_only=True)
+    name: str
+    path: str
+    content_type: str
     created_at: datetime | None = field(default=None, kw_only=True)
-    updated_at: datetime | None = field(default=None, kw_only=True)
