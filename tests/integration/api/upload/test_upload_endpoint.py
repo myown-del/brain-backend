@@ -1,50 +1,45 @@
+import re
 from unittest.mock import MagicMock
 import pytest
 from fastapi.testclient import TestClient
 from dishka import make_async_container, Provider, Scope, provide
 from dishka.integrations.fastapi import setup_dishka
 
+from brain.application.abstractions.storage.files import IFileStorage
+from brain.application.interactors.upload_file import UploadFileInteractor
 from brain.presentation.api.factory import create_bare_app
-from brain.config.models import Config, S3Config, APIConfig
-from brain.infrastructure.s3.client import S3Client
+from brain.config.models import APIConfig
 
 
 @pytest.fixture
 def client(event_loop):
-    # Mock Config
-    mock_config = MagicMock(spec=Config)
-    mock_config.api = APIConfig(
+    api_config = APIConfig(
         internal_host="0.0.0.0",
         external_host="localhost",
         port=8080,
     )
-    mock_config.s3 = S3Config(
-        external_host="http://localhost:9000",
-        endpoint_url="http://test:9000",
-        access_key_id="test",
-        secret_access_key="test",
-        bucket_name="test-bucket",
-    )
 
-    # Mock S3Client
-    mock_s3_client = MagicMock(spec=S3Client)
-    mock_s3_client.config = mock_config.s3
-    mock_s3_client.upload_file.return_value = "http://test:9000/test-bucket/image.jpg"
+    mock_file_storage = MagicMock(spec=IFileStorage)
+
+    def upload_file_side_effect(content: bytes, object_name: str, content_type: str | None = None):
+        return f"http://localhost:9000/test-bucket/{object_name}"
+
+    mock_file_storage.upload.side_effect = upload_file_side_effect
 
     # Provider
     class MockProvider(Provider):
         scope = Scope.APP
 
         @provide
-        def get_s3_client(self) -> S3Client:
-            return mock_s3_client
+        def get_upload_file_interactor(self, file_storage: IFileStorage) -> UploadFileInteractor:
+            return UploadFileInteractor(file_storage=file_storage)
 
-        @provide
-        def get_s3_config(self) -> S3Config:
-            return mock_config.s3
+        @provide(provides=IFileStorage)
+        def get_file_storage(self) -> IFileStorage:
+            return mock_file_storage
 
     # App
-    app = create_bare_app(mock_config.api)
+    app = create_bare_app(api_config)
 
     # Container
     container = make_async_container(MockProvider())
@@ -58,6 +53,27 @@ def client(event_loop):
 
 def test_upload_image(client):
     files = {"file": ("test.jpg", b"content", "image/jpeg")}
+    response = client.post(url="/api/upload/file", files=files)
+    assert response.status_code == 200
+    assert re.match(r"^http://localhost:9000/test-bucket/[0-9a-f-]+\.jpg$", response.json()["url"])
+
+
+def test_upload_file_supports_non_image_content(client):
+    files = {"file": ("report.pdf", b"content", "application/pdf")}
+    response = client.post(url="/api/upload/file", files=files)
+    assert response.status_code == 200
+    assert re.match(r"^http://localhost:9000/test-bucket/[0-9a-f-]+\.pdf$", response.json()["url"])
+
+
+def test_upload_file_without_extension(client):
+    files = {"file": ("README", b"content", "text/plain")}
+    response = client.post(url="/api/upload/file", files=files)
+    assert response.status_code == 200
+    assert re.match(r"^http://localhost:9000/test-bucket/[0-9a-f-]+\.bin$", response.json()["url"])
+
+
+def test_upload_image_alias_remains_available(client):
+    files = {"file": ("legacy.jpg", b"content", "image/jpeg")}
     response = client.post(url="/api/upload/image", files=files)
     assert response.status_code == 200
-    assert response.json() == {"url": "http://localhost:9000/test-bucket/image.jpg"}
+    assert re.match(r"^http://localhost:9000/test-bucket/[0-9a-f-]+\.jpg$", response.json()["url"])

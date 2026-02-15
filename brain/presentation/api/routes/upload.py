@@ -1,33 +1,40 @@
-import uuid
 from fastapi import APIRouter, UploadFile, File
 from dishka.integrations.fastapi import FromDishka, inject
 from starlette import status
 
-from brain.infrastructure.s3.client import S3Client
-from brain.config.models import S3Config
+from brain.application.interactors.upload_file import UploadFileInteractor
+from brain.presentation.api.routes.upload_models import ReadUploadedFileSchema
 
 
 @inject
-async def upload_image(
-    s3_client: FromDishka[S3Client],
-    s3_config: FromDishka[S3Config],
+async def upload_file(
+    interactor: FromDishka[UploadFileInteractor],
     file: UploadFile = File(...),
-):
+) -> ReadUploadedFileSchema:
     content = await file.read()
-    extension = file.filename.split(".")[-1] if "." in file.filename else "jpg"
-    object_name = f"{uuid.uuid4()}.{extension}"
-
-    url = s3_client.upload_file(content, object_name, content_type=file.content_type)
-    url = url.replace(s3_config.endpoint_url, s3_config.external_host)
-    return {"url": url}
+    url = await interactor.upload_file(
+        filename=file.filename,
+        content=content,
+        content_type=file.content_type,
+    )
+    return ReadUploadedFileSchema(url=url)
 
 
 def get_router() -> APIRouter:
     router = APIRouter(prefix="/upload", tags=["Upload"])
     router.add_api_route(
-        path="/image",
-        endpoint=upload_image,
+        path="/file",
+        endpoint=upload_file,
         methods=["POST"],
+        response_model=ReadUploadedFileSchema,
         status_code=status.HTTP_200_OK,
+    )
+    router.add_api_route(
+        path="/image",
+        endpoint=upload_file,
+        methods=["POST"],
+        response_model=ReadUploadedFileSchema,
+        status_code=status.HTTP_200_OK,
+        deprecated=True,
     )
     return router

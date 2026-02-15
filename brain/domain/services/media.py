@@ -1,8 +1,14 @@
+def get_file_extension(filename: str | None, default: str = "bin") -> str:
+    if not filename or "." not in filename:
+        return default
+    return filename.rsplit(".", 1)[-1].lower()
+
+
 def guess_image_content_type(file_path: str | None) -> str | None:
     """Infer the MIME type from a file path extension, returning None when unknown."""
     if not file_path:
         return None
-    extension = file_path.rsplit(".", 1)[-1].lower()
+    extension = get_file_extension(file_path, default="")
     if extension in {"jpg", "jpeg"}:
         return "image/jpeg"
     if extension == "png":
