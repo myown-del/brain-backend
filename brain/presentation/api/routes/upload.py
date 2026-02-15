@@ -29,12 +29,4 @@ def get_router() -> APIRouter:
         response_model=ReadUploadedFileSchema,
         status_code=status.HTTP_200_OK,
     )
-    router.add_api_route(
-        path="/image",
-        endpoint=upload_file,
-        methods=["POST"],
-        response_model=ReadUploadedFileSchema,
-        status_code=status.HTTP_200_OK,
-        deprecated=True,
-    )
     return router
