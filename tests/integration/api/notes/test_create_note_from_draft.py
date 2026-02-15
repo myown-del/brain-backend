@@ -3,6 +3,8 @@ from uuid import uuid4
 import pytest
 from starlette import status
 
+from brain.config.models import Config
+from brain.domain.entities.s3_file import S3File
 from brain.domain.entities.user import User
 from brain.infrastructure.db.repositories.hub import RepositoryHub
 from tests.integration.api.drafts.helpers import create_draft
@@ -82,6 +84,52 @@ async def test_create_note_from_draft_generates_title(
     assert payload["text"] == "Draft body"
     stored_draft = await repo_hub.drafts.get_by_id(draft_id=draft.id)
     assert stored_draft is None
+
+
+@pytest.mark.asyncio
+async def test_create_note_from_draft_appends_attached_file_markdown(
+    notes_app,
+    api_client,
+    dishka_request,
+    repo_hub: RepositoryHub,
+    user,
+):
+    # setup: create file-backed draft
+    config = await dishka_request.get(Config)
+    file = S3File(
+        id=uuid4(),
+        name="draft-image.png",
+        path="uploads/draft-image.png",
+        content_type="image/png",
+    )
+    await repo_hub.s3_files.create(entity=file)
+    draft = await create_draft(
+        repo_hub=repo_hub,
+        user=user,
+        text="Draft text",
+        file_id=file.id,
+    )
+
+    # action: create note from draft with attachment
+    async with api_client(notes_app) as client:
+        response = await client.request(
+            method="POST",
+            url="/api/notes/create-from-draft",
+            json={"draft_id": str(draft.id), "title": "From Draft With File"},
+        )
+
+    # check: attachment markdown is appended to note text
+    assert response.status_code == status.HTTP_201_CREATED
+    payload = response.json()
+    expected_text = f"Draft text\n\n![{file.name}]({config.s3.external_host}/{file.path})"
+    assert payload["text"] == expected_text
+    stored_note = await repo_hub.notes.get_by_title(
+        user_id=user.id,
+        title="From Draft With File",
+        exact_match=True,
+    )
+    assert stored_note is not None
+    assert stored_note.text == expected_text
 
 
 @pytest.mark.asyncio

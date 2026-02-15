@@ -5,6 +5,8 @@ from brain.application.interactors.drafts.exceptions import DraftNotFoundExcepti
 from brain.application.interactors.notes.create_note import CreateNoteInteractor
 from brain.application.interactors.notes.dto import CreateNote, CreateNoteFromDraft
 from brain.application.interactors.users.get_user import GetUserInteractor
+from brain.config.models import S3Config
+from brain.domain.services.media import build_public_file_url
 
 
 class DraftForbiddenException(Exception):
@@ -17,10 +19,22 @@ class CreateNoteFromDraftInteractor:
         get_user_interactor: GetUserInteractor,
         drafts_repo: IDraftsRepository,
         create_note_interactor: CreateNoteInteractor,
+        s3_config: S3Config,
     ):
         self._get_user_interactor = get_user_interactor
         self._drafts_repo = drafts_repo
         self._create_note_interactor = create_note_interactor
+        self._s3_config = s3_config
+
+    def _build_note_text(self, draft_text: str | None, filename: str, file_path: str) -> str:
+        file_url = build_public_file_url(
+            external_host=self._s3_config.external_host,
+            file_path=file_path,
+        )
+        markdown_image = f"![{filename}]({file_url})"
+        if not draft_text:
+            return markdown_image
+        return f"{draft_text}\n\n{markdown_image}"
 
     async def create_note_from_draft(self, note_data: CreateNoteFromDraft) -> UUID:
         user = await self._get_user_interactor.get_user_by_telegram_id(note_data.by_user_telegram_id)
@@ -30,11 +44,19 @@ class CreateNoteFromDraftInteractor:
         if draft.user_id != user.id:
             raise DraftForbiddenException()
 
+        note_text = draft.text
+        if draft.file and draft.file.name and draft.file.path:
+            note_text = self._build_note_text(
+                draft_text=draft.text,
+                filename=draft.file.name,
+                file_path=draft.file.path,
+            )
+
         await self._drafts_repo.delete_by_id(draft.id)
         return await self._create_note_interactor.create_note(
             CreateNote(
                 by_user_telegram_id=note_data.by_user_telegram_id,
                 title=note_data.title,
-                text=draft.text,
+                text=note_text,
             ),
         )
