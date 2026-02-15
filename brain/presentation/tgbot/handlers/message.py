@@ -1,24 +1,27 @@
 from aiogram.types import Message
 from dishka import AsyncContainer
 
-from brain.application.interactors.notes.dto import CreateNote
-from brain.application.interactors import CreateNoteInteractor
+from brain.application.interactors import CreateDraftInteractor, GetUserInteractor
+from brain.application.interactors.drafts.dto import CreateDraft
 from brain.application.interactors.users.exceptions import UserNotFoundException
 
 
 async def handle_message(m: Message, dishka_container: AsyncContainer):
-    interactor = await dishka_container.get(CreateNoteInteractor)
+    create_draft_interactor = await dishka_container.get(CreateDraftInteractor)
+    get_user_interactor = await dishka_container.get(GetUserInteractor)
     try:
-        await interactor.create_note(
-            CreateNote(
-                by_user_telegram_id=m.from_user.id,
-                title=None,
+        user = await get_user_interactor.get_user_by_telegram_id(m.from_user.id)
+        await create_draft_interactor.create_draft(
+            CreateDraft(
+                user_id=user.id,
                 text=m.text,
             )
         )
     except UserNotFoundException:
         await m.reply(f"Вы не авторизованы")
-    except Exception as e:
-        await m.reply(f"Ошибка создания заметки")
+        return
+    except Exception:
+        await m.reply(f"Ошибка создания черновика")
+        return
 
-    await m.reply("Заметка сохранена")
+    await m.reply("Черновик сохранен")
