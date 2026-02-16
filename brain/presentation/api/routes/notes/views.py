@@ -116,6 +116,23 @@ async def search_notes_by_title(
 
 
 @inject
+async def get_note(
+    interactor: FromDishka[GetNoteInteractor],
+    note_id: UUID,
+    user: User = Depends(get_notes_user_from_request),
+):
+    note = await interactor.get_note_by_id(note_id)
+    if note is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note not found")
+    if note.user_id != user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden",
+        )
+    return map_note_to_read_schema(note)
+
+
+@inject
 async def create_note(
     create_interactor: FromDishka[CreateNoteInteractor],
     get_note_interactor: FromDishka[GetNoteInteractor],
@@ -390,6 +407,14 @@ def get_router() -> APIRouter:
         methods=["GET"],
         response_model=NewNoteTitleSchema,
         summary="Get next untitled note title",
+        status_code=status.HTTP_200_OK,
+    )
+    router.add_api_route(
+        path="/{note_id}",
+        endpoint=get_note,
+        methods=["GET"],
+        response_model=ReadNoteSchema,
+        summary="Get note by id",
         status_code=status.HTTP_200_OK,
     )
     router.add_api_route(
