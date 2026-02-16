@@ -11,9 +11,11 @@ from brain.application.interactors import (
     CreateNoteInteractor,
     CreateNoteFromDraftInteractor,
     DeleteNoteInteractor,
+    AppendNoteFromDraftInteractor,
     GetNoteInteractor,
     GetNoteCreationStatsInteractor,
     GetNotesInteractor,
+    MergeNotesInteractor,
     SearchNotesByTitleInteractor,
     SearchWikilinkSuggestionsInteractor,
     UpdateNoteInteractor,
@@ -31,11 +33,20 @@ from brain.application.interactors.notes.create_note_from_draft import (
     DraftForbiddenException,
 )
 from brain.application.interactors.drafts.exceptions import DraftNotFoundException
+from brain.application.interactors.notes.append_note_from_draft import (
+    AppendFromDraftForbiddenException,
+)
+from brain.application.interactors.notes.merge_notes import (
+    MergeNotesForbiddenException,
+    MergeNotesValidationException,
+)
 from brain.domain.entities.user import User
 from brain.presentation.api.dependencies.auth import get_notes_user_from_request
 from brain.presentation.api.routes.notes.mappers import (
+    map_append_from_draft_schema_to_dto,
     map_create_schema_to_dto,
     map_create_from_draft_schema_to_dto,
+    map_merge_schema_to_dto,
     map_note_to_read_schema,
     map_update_schema_to_dto,
     map_wikilink_suggestion_to_schema,
@@ -49,6 +60,8 @@ from brain.presentation.api.routes.notes.models import (
     WikilinkSuggestionSchema,
     NoteCreationStatSchema,
     NewNoteTitleSchema,
+    MergeNotesSchema,
+    AppendFromDraftSchema,
 )
 from brain.domain.time import ensure_utc_datetime
 
@@ -297,6 +310,46 @@ async def get_new_note_title(
     return NewNoteTitleSchema(title=title)
 
 
+@inject
+async def merge_notes(
+    interactor: FromDishka[MergeNotesInteractor],
+    body: MergeNotesSchema,
+    user: User = Depends(get_notes_user_from_request),
+):
+    try:
+        merged_note = await interactor.merge_notes(
+            map_merge_schema_to_dto(schema=body, user=user),
+        )
+    except NoteNotFoundException:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note not found")
+    except MergeNotesForbiddenException:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+    except MergeNotesValidationException as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+
+    return map_note_to_read_schema(merged_note)
+
+
+@inject
+async def append_from_draft(
+    interactor: FromDishka[AppendNoteFromDraftInteractor],
+    body: AppendFromDraftSchema,
+    user: User = Depends(get_notes_user_from_request),
+):
+    try:
+        note = await interactor.append_from_draft(
+            map_append_from_draft_schema_to_dto(schema=body, user=user),
+        )
+    except NoteNotFoundException:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note not found")
+    except DraftNotFoundException:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Draft not found")
+    except AppendFromDraftForbiddenException:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+
+    return map_note_to_read_schema(note)
+
+
 def get_router() -> APIRouter:
     router = APIRouter(prefix="/notes")
     router.add_api_route(
@@ -354,6 +407,22 @@ def get_router() -> APIRouter:
         response_model=ReadNoteSchema,
         summary="Create note from draft",
         status_code=status.HTTP_201_CREATED,
+    )
+    router.add_api_route(
+        path="/merge",
+        endpoint=merge_notes,
+        methods=["POST"],
+        response_model=ReadNoteSchema,
+        summary="Merge source notes into a target note",
+        status_code=status.HTTP_200_OK,
+    )
+    router.add_api_route(
+        path="/append-from-draft",
+        endpoint=append_from_draft,
+        methods=["POST"],
+        response_model=ReadNoteSchema,
+        summary="Append draft text to note and delete draft",
+        status_code=status.HTTP_200_OK,
     )
     router.add_api_route(
         path="/{note_id}",

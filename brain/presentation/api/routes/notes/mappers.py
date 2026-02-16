@@ -3,8 +3,10 @@ from dataclasses import asdict
 from uuid import UUID
 
 from brain.application.interactors.notes.dto import (
+    AppendNoteFromDraft,
     CreateNote,
     CreateNoteFromDraft,
+    MergeNotes,
     UpdateNote,
 )
 from brain.domain.entities.note import Note
@@ -16,6 +18,8 @@ from brain.presentation.api.routes.notes.models import (
     UpdateNoteSchema,
     WikilinkSuggestionSchema,
     NoteCreationStatSchema,
+    MergeNotesSchema,
+    AppendFromDraftSchema,
 )
 from brain.application.abstractions.repositories.models import (
     WikilinkSuggestion,
@@ -76,3 +80,25 @@ def map_note_creation_stat_to_schema(
     stat: NoteCreationStat,
 ) -> NoteCreationStatSchema:
     return NoteCreationStatSchema.model_validate(asdict(stat))
+
+
+def map_merge_schema_to_dto(
+    schema: MergeNotesSchema,
+    user: User,
+) -> MergeNotes:
+    return MergeNotes(
+        by_user_telegram_id=user.telegram_id,
+        source_note_ids=schema.source_note_ids,
+        target_note_id=schema.target_note_id,
+    )
+
+
+def map_append_from_draft_schema_to_dto(
+    schema: AppendFromDraftSchema,
+    user: User,
+) -> AppendNoteFromDraft:
+    return AppendNoteFromDraft(
+        by_user_telegram_id=user.telegram_id,
+        note_id=schema.note_id,
+        draft_id=schema.draft_id,
+    )

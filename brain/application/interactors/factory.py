@@ -20,6 +20,8 @@ from brain.application.interactors import (
     SearchNotesByTitleInteractor,
     SearchWikilinkSuggestionsInteractor,
     UpdateNoteInteractor,
+    MergeNotesInteractor,
+    AppendNoteFromDraftInteractor,
     UserInteractor,
     ExportNotesInteractor,
     ImportNotesInteractor,
@@ -34,6 +36,7 @@ from brain.application.services.draft_hashtag_sync import DraftHashtagSyncServic
 from brain.application.services.keyword_notes import KeywordNoteService
 from brain.application.services.note_titles import NoteTitleService
 from brain.application.services.note_keyword_sync import NoteKeywordSyncService
+from brain.domain.services.note_text import NoteTextService
 from brain.application.interactors.auth.interactor import AuthInteractor
 from brain.application.interactors.auth.create_api_key import CreateApiKeyInteractor
 from brain.application.interactors.auth.delete_api_key import DeleteApiKeyInteractor
@@ -58,10 +61,13 @@ class InteractorProvider(Provider):
     get_note_title_service = provide(NoteTitleService, scope=Scope.REQUEST)
     get_draft_hashtag_sync_service = provide(DraftHashtagSyncService, scope=Scope.REQUEST)
     get_note_keyword_sync_service = provide(NoteKeywordSyncService, scope=Scope.REQUEST)
+    get_note_text_service = provide(NoteTextService, scope=Scope.REQUEST)
     get_create_note_interactor = provide(CreateNoteInteractor, scope=Scope.REQUEST)
     get_create_note_from_draft_interactor = provide(CreateNoteFromDraftInteractor, scope=Scope.REQUEST)
     get_create_draft_interactor = provide(CreateDraftInteractor, scope=Scope.REQUEST)
     get_update_note_interactor = provide(UpdateNoteInteractor, scope=Scope.REQUEST)
+    get_merge_notes_interactor = provide(MergeNotesInteractor, scope=Scope.REQUEST)
+    get_append_note_from_draft_interactor = provide(AppendNoteFromDraftInteractor, scope=Scope.REQUEST)
     get_update_draft_interactor = provide(UpdateDraftInteractor, scope=Scope.REQUEST)
     get_delete_note_interactor = provide(DeleteNoteInteractor, scope=Scope.REQUEST)
     get_delete_draft_interactor = provide(DeleteDraftInteractor, scope=Scope.REQUEST)

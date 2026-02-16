@@ -15,6 +15,8 @@ from .notes.get_note_creation_stats import GetNoteCreationStatsInteractor
 from .notes.search_notes_by_title import SearchNotesByTitleInteractor
 from .notes.search_wikilink_suggestions import SearchWikilinkSuggestionsInteractor
 from .notes.update_note import UpdateNoteInteractor
+from .notes.merge_notes import MergeNotesInteractor
+from .notes.append_note_from_draft import AppendNoteFromDraftInteractor
 from .graph.get_graph import GetGraphInteractor
 from .users.get_user import GetUserInteractor
 from .users.interactor import UserInteractor

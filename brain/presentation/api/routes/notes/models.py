@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ReadNoteSchema(BaseModel):
@@ -42,3 +42,13 @@ class NoteCreationStatSchema(BaseModel):
 
 class NewNoteTitleSchema(BaseModel):
     title: str
+
+
+class MergeNotesSchema(BaseModel):
+    source_note_ids: list[UUID] = Field(min_length=1)
+    target_note_id: UUID
+
+
+class AppendFromDraftSchema(BaseModel):
+    note_id: UUID
+    draft_id: UUID

@@ -24,3 +24,17 @@ class UpdateNote:
     text: str | None | UnsetType = Unset
     patch: str | None | UnsetType = Unset
     is_pinned: bool | UnsetType = Unset
+
+
+@dataclass
+class MergeNotes:
+    by_user_telegram_id: int
+    source_note_ids: list[UUID]
+    target_note_id: UUID
+
+
+@dataclass
+class AppendNoteFromDraft:
+    by_user_telegram_id: int
+    note_id: UUID
+    draft_id: UUID
