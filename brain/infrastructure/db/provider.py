@@ -2,8 +2,10 @@ from typing import AsyncIterable
 from collections.abc import Callable
 
 from dishka import Provider, provide, Scope
+from neo4j import AsyncDriver
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, AsyncEngine
 
+from brain.application.abstractions.config.models import INeo4jConfig
 from brain.application.abstractions.repositories.drafts import IDraftsRepository
 from brain.application.abstractions.repositories.hashtags import IHashtagsRepository
 from brain.application.abstractions.repositories.notes import INotesRepository
@@ -24,7 +26,6 @@ from brain.application.abstractions.repositories.tg_bot_auth import (
 from brain.application.abstractions.config.models import IDatabaseConfig
 from brain.application.abstractions.uow import IUnitOfWork, UnitOfWorkFactory
 from brain.infrastructure.db.connection import create_engine, create_session_maker
-from brain.infrastructure.db.uow import SqlAlchemyUnitOfWork
 from brain.infrastructure.db.repositories.hub import RepositoryHub
 from brain.infrastructure.db.repositories.drafts import DraftsRepository
 from brain.infrastructure.db.repositories.hashtags import HashtagsRepository
@@ -40,6 +41,12 @@ from brain.infrastructure.db.repositories.api_keys import (
 )
 from brain.infrastructure.db.repositories.tg_bot_auth import (
     TelegramBotAuthSessionsRepository,
+)
+from brain.infrastructure.uow.composite import CompositeUnitOfWork
+from brain.infrastructure.uow.context import UnitOfWorkContext
+from brain.infrastructure.uow.backends import (
+    Neo4jTransactionController,
+    SqlAlchemyTransactionController,
 )
 
 
@@ -61,10 +68,41 @@ class DatabaseProvider(Provider):
         async with pool() as session:
             yield session
 
+    @provide(scope=Scope.REQUEST)
+    def get_uow_context(self) -> UnitOfWorkContext:
+        return UnitOfWorkContext()
+
+    @provide(scope=Scope.REQUEST)
+    def get_sql_transaction_controller(
+        self,
+        session: AsyncSession,
+    ) -> SqlAlchemyTransactionController:
+        return SqlAlchemyTransactionController(session=session)
+
+    @provide(scope=Scope.REQUEST)
+    def get_neo4j_transaction_controller(
+        self,
+        driver: AsyncDriver,
+        neo4j_config: INeo4jConfig,
+    ) -> Neo4jTransactionController:
+        return Neo4jTransactionController(
+            driver=driver,
+            database=neo4j_config.database,
+        )
+
     @provide(scope=Scope.REQUEST, provides=UnitOfWorkFactory)
-    def get_uow_factory(self, session: AsyncSession) -> Callable[[], IUnitOfWork]:
+    def get_uow_factory(
+        self,
+        sql_controller: SqlAlchemyTransactionController,
+        neo4j_controller: Neo4jTransactionController,
+        uow_context: UnitOfWorkContext,
+    ) -> Callable[[], IUnitOfWork]:
         def factory() -> IUnitOfWork:
-            return SqlAlchemyUnitOfWork(session)
+            return CompositeUnitOfWork(
+                controllers=[sql_controller, neo4j_controller],
+                uow_context=uow_context,
+                primary_flush_controller_key=SqlAlchemyTransactionController.backend_key,
+            )
 
         return factory
 

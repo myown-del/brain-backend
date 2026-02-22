@@ -3,6 +3,7 @@ from starlette import status
 
 from brain.infrastructure.db.repositories.hub import RepositoryHub
 from tests.integration.api.notes.helpers import create_keyword_note
+from tests.integration.utils.uow import commit_repo_hub
 
 
 @pytest.mark.asyncio
@@ -20,6 +21,7 @@ async def test_get_wikilink_suggestions(
         text="Text",
     )
     await repo_hub.keywords.ensure_keywords(user_id=user.id, names=["Beta"])
+    await commit_repo_hub(repo_hub)
 
     # action: request wikilink suggestions
     async with api_client(notes_app) as client:

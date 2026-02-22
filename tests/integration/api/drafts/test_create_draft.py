@@ -8,6 +8,7 @@ from brain.domain.entities.s3_file import S3File
 from brain.domain.entities.user import User
 from brain.infrastructure.db.repositories.hub import RepositoryHub
 from tests.integration.api.conftest import ApiClientFactory
+from tests.integration.utils.uow import commit_repo_hub
 
 
 @pytest.mark.asyncio
@@ -53,6 +54,7 @@ async def test_create_draft_with_file_id(
         content_type="text/plain",
     )
     await repo_hub.s3_files.create(entity=file)
+    await commit_repo_hub(repo_hub)
     payload = {"text": "Draft with file", "file_id": str(file.id)}
 
     # action: create draft via API

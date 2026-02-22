@@ -13,6 +13,9 @@ from brain.application.abstractions.repositories.notes_graph import INotesGraphR
 from brain.config.models import Config
 from brain.infrastructure.graph.connection import create_driver
 from brain.infrastructure.graph.repositories.notes import NotesGraphRepository
+from brain.infrastructure.graph.tx_accessor import Neo4jTxAccessor
+from brain.infrastructure.uow.backends import Neo4jTransactionController
+from brain.infrastructure.uow.context import UnitOfWorkContext
 from tests.mocks.config import Neo4jConfig
 
 
@@ -30,8 +33,24 @@ class TestGraphProvider(Provider):
         self,
         driver: AsyncDriver,
         config: INeo4jConfig,
+        tx_accessor: Neo4jTxAccessor,
     ) -> NotesGraphRepository:
-        return NotesGraphRepository(driver=driver, database=config.database)
+        return NotesGraphRepository(
+            driver=driver,
+            database=config.database,
+            tx_accessor=tx_accessor,
+        )
+
+    @provide(scope=Scope.REQUEST)
+    def get_neo4j_tx_accessor(
+        self,
+        uow_context: UnitOfWorkContext,
+        controller: Neo4jTransactionController,
+    ) -> Neo4jTxAccessor:
+        return Neo4jTxAccessor(
+            uow_context=uow_context,
+            controller=controller,
+        )
 
 
 class TestNeo4jConfigProvider(Provider):

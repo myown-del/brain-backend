@@ -5,12 +5,18 @@ from neo4j import AsyncDriver
 from brain.application.abstractions.repositories.notes_graph import INotesGraphRepository
 from brain.domain.entities.graph import GraphData, GraphNode, GraphConnection
 from brain.domain.entities.note import Note
+from brain.infrastructure.graph.tx_accessor import Neo4jTxAccessor
 
 
 class NotesGraphRepository(INotesGraphRepository):
-    def __init__(self, driver: AsyncDriver, database: str):
+    def __init__(self, driver: AsyncDriver, database: str, tx_accessor: Neo4jTxAccessor):
         self._driver = driver
         self._database = database
+        self._tx_accessor = tx_accessor
+
+    async def _run_write(self, query: str, **params: str | list[str] | None) -> None:
+        tx = await self._tx_accessor.get_tx()
+        await tx.run(query, **params)
 
     async def upsert_note(self, note: Note):
         query = """
@@ -21,15 +27,14 @@ class NotesGraphRepository(INotesGraphRepository):
                 n.text = $text,
                 n.represents_keyword_id = $represents_keyword_id
         """
-        async with self._driver.session(database=self._database) as session:
-            await session.run(
-                query,
-                id=str(note.id),
-                user_id=str(note.user_id),
-                title=note.title,
-                text=note.text,
-                represents_keyword_id=str(note.represents_keyword_id),
-            )
+        await self._run_write(
+            query,
+            id=str(note.id),
+            user_id=str(note.user_id),
+            title=note.title,
+            text=note.text,
+            represents_keyword_id=str(note.represents_keyword_id),
+        )
 
     async def sync_connections(
         self,
@@ -38,94 +43,92 @@ class NotesGraphRepository(INotesGraphRepository):
         previous_title: str | None = None,
         previous_represents_keyword_id: UUID | None = None,
     ):
-        async with self._driver.session(database=self._database) as session:
-            await session.run(
+        await self._run_write(
+            """
+            MATCH (n:Note {id: $id})
+            OPTIONAL MATCH (n)-[r]->()
+            WHERE type(r) IN ["LINKS_TO", "HAS_KEYWORD"]
+            DELETE r
+            """,
+            id=str(note.id),
+        )
+
+        if previous_represents_keyword_id and previous_title != note.title:
+            await self._run_write(
                 """
-                MATCH (n:Note {id: $id})
-                OPTIONAL MATCH (n)-[r]->()
-                WHERE type(r) IN ["LINKS_TO", "HAS_KEYWORD"]
+                MATCH (source:Note)-[r]->(target:Note {id: $id})
+                WHERE type(r) = "LINKS_TO"
+                MATCH (source)-[:HAS_KEYWORD]->(:Keyword {
+                    user_id: $user_id,
+                    name: $prev_title
+                })
                 DELETE r
                 """,
                 id=str(note.id),
+                user_id=str(note.user_id),
+                prev_title=previous_title,
             )
 
-            if previous_represents_keyword_id and previous_title != note.title:
-                await session.run(
-                    """
-                    MATCH (source:Note)-[r]->(target:Note {id: $id})
-                    WHERE type(r) = "LINKS_TO"
-                    MATCH (source)-[:HAS_KEYWORD]->(:Keyword {
-                        user_id: $user_id,
-                        name: $prev_title
-                    })
-                    DELETE r
-                    """,
-                    id=str(note.id),
-                    user_id=str(note.user_id),
-                    prev_title=previous_title,
-                )
-
-            if link_targets:
-                await session.run(
-                    """
-                    MATCH (source:Note {id: $id})
-                    UNWIND $targets AS target
-                    MERGE (k:Keyword {user_id: $user_id, name: target})
-                    MERGE (source)-[:HAS_KEYWORD]->(k)
-                    """,
-                    id=str(note.id),
-                    user_id=str(note.user_id),
-                    targets=link_targets,
-                )
-
-                await session.run(
-                    """
-                    MATCH (source:Note {id: $id})
-                    UNWIND $targets AS target
-                    MATCH (target_note:Note {user_id: $user_id, title: target})
-                    WHERE
-                        target_note.represents_keyword_id IS NOT NULL
-                        AND target_note.id <> $id
-                    MERGE (source)-[:LINKS_TO]->(target_note)
-                    """,
-                    id=str(note.id),
-                    user_id=str(note.user_id),
-                    targets=link_targets,
-                )
-
-            await session.run(
+        if link_targets:
+            await self._run_write(
                 """
-                MATCH (target:Note {id: $id})
-                MATCH (k:Keyword {user_id: $user_id, name: $title})
-                MATCH (source:Note)-[:HAS_KEYWORD]->(k)
-                WHERE source.id <> target.id
-                MERGE (source)-[:LINKS_TO]->(target)
+                MATCH (source:Note {id: $id})
+                UNWIND $targets AS target
+                MERGE (k:Keyword {user_id: $user_id, name: target})
+                MERGE (source)-[:HAS_KEYWORD]->(k)
                 """,
                 id=str(note.id),
                 user_id=str(note.user_id),
-                title=note.title,
+                targets=link_targets,
             )
 
-    async def delete_note(self, note_id: UUID):
-        async with self._driver.session(database=self._database) as session:
-            await session.run(
+            await self._run_write(
                 """
-                MATCH (n:Note {id: $id})
-                WITH n, n.user_id AS user_id
-                DETACH DELETE n
-                WITH user_id
-                MATCH (k:Keyword {user_id: user_id})
-                WHERE NOT EXISTS {
-                    MATCH (:Note)-[:HAS_KEYWORD]->(k)
-                }
-                AND NOT EXISTS {
-                    MATCH (m:Note {user_id: user_id, title: k.name})
-                    WHERE m.represents_keyword_id IS NOT NULL
-                }
-                DETACH DELETE k
+                MATCH (source:Note {id: $id})
+                UNWIND $targets AS target
+                MATCH (target_note:Note {user_id: $user_id, title: target})
+                WHERE
+                    target_note.represents_keyword_id IS NOT NULL
+                    AND target_note.id <> $id
+                MERGE (source)-[:LINKS_TO]->(target_note)
                 """,
-                id=str(note_id),
+                id=str(note.id),
+                user_id=str(note.user_id),
+                targets=link_targets,
             )
+
+        await self._run_write(
+            """
+            MATCH (target:Note {id: $id})
+            MATCH (k:Keyword {user_id: $user_id, name: $title})
+            MATCH (source:Note)-[:HAS_KEYWORD]->(k)
+            WHERE source.id <> target.id
+            MERGE (source)-[:LINKS_TO]->(target)
+            """,
+            id=str(note.id),
+            user_id=str(note.user_id),
+            title=note.title,
+        )
+
+    async def delete_note(self, note_id: UUID):
+        await self._run_write(
+            """
+            MATCH (n:Note {id: $id})
+            WITH n, n.user_id AS user_id
+            DETACH DELETE n
+            WITH user_id
+            MATCH (k:Keyword {user_id: user_id})
+            WHERE NOT EXISTS {
+                MATCH (:Note)-[:HAS_KEYWORD]->(k)
+            }
+            AND NOT EXISTS {
+                MATCH (m:Note {user_id: user_id, title: k.name})
+                WHERE m.represents_keyword_id IS NOT NULL
+            }
+            DETACH DELETE k
+            """,
+            id=str(note_id),
+        )
 
     async def count_notes_by_user_and_title(self, user_id: UUID, title: str) -> int:
         async with self._driver.session(database=self._database) as session:
