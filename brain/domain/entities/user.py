@@ -18,6 +18,7 @@ class User(Entity):
     first_name: str
     last_name: str | None = field(default=None, kw_only=True)
     profile_picture_file_id: UUID | None = field(default=None, kw_only=True)
+    pin_hash: str | None = field(default=None, kw_only=True)
     profile_picture: S3File | None = field(default=None, kw_only=True)
     created_at: datetime | None = field(default=None, kw_only=True)
     updated_at: datetime | None = field(default=None, kw_only=True)

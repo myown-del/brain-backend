@@ -2,24 +2,33 @@ from dataclasses import asdict
 
 from dishka import FromDishka
 from dishka.integrations.fastapi import inject
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from brain.application.interactors.auth.exceptions import (
     JwtTokenExpiredException,
     JwtTokenInvalidException,
     TelegramBotAuthSessionNotFoundException,
 )
 from brain.application.interactors.auth.interactor import AuthInteractor
+from brain.application.interactors.auth.set_user_pin import SetUserPinInteractor
 from brain.application.interactors.auth.session_interactor import (
     TelegramBotAuthSessionInteractor,
 )
+from brain.application.interactors.auth.verify_user_pin import VerifyUserPinInteractor
 from brain.application.interactors.users.exceptions import UserNotFoundException
+from brain.application.services.pin_verification import InvalidPinFormatException
+from brain.domain.entities.user import User
 from brain.config.models import AuthenticationConfig
 from brain.domain.entities.tg_bot_auth import TelegramBotAuthSession
+from brain.presentation.api.dependencies.auth import get_user_from_request
 from brain.presentation.api.routes.auth.models import (
     FakeAuthSchema,
     JwtTokenSchema,
+    PinStatusSchema,
+    PinVerifyResultSchema,
     RefreshTokenSchema,
+    SetPinSchema,
     TelegramBotAuthSessionSchema,
+    VerifyPinSchema,
 )
 
 
@@ -115,6 +124,54 @@ async def get_tg_bot_auth_session(
     return TelegramBotAuthSessionSchema.model_validate(payload)
 
 
+@inject
+async def set_pin(
+    interactor: FromDishka[SetUserPinInteractor],
+    body: SetPinSchema,
+    user: User = Depends(get_user_from_request),
+):
+    try:
+        await interactor.set_pin(user_id=user.id, pin=body.pin)
+    except UserNotFoundException:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    except InvalidPinFormatException:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Invalid PIN format",
+        )
+
+
+@inject
+async def verify_pin(
+    interactor: FromDishka[VerifyUserPinInteractor],
+    body: VerifyPinSchema,
+    user: User = Depends(get_user_from_request),
+):
+    try:
+        verified = await interactor.verify_pin(user_id=user.id, pin=body.pin)
+    except UserNotFoundException:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    except InvalidPinFormatException:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Invalid PIN format",
+        )
+    return PinVerifyResultSchema(verified=verified)
+
+
+@inject
+async def get_pin_status(
+    user: User = Depends(get_user_from_request),
+):
+    return PinStatusSchema(is_pin_set=bool(user.pin_hash))
+
+
 def get_router() -> APIRouter:
     router = APIRouter(prefix="/auth", tags=["Authentication"])
     router.add_api_route(
@@ -141,6 +198,26 @@ def get_router() -> APIRouter:
         endpoint=get_tg_bot_auth_session,
         methods=["GET"],
         response_model=TelegramBotAuthSessionSchema,
+        status_code=status.HTTP_200_OK,
+    )
+    router.add_api_route(
+        path="/pin/set",
+        endpoint=set_pin,
+        methods=["POST"],
+        status_code=status.HTTP_204_NO_CONTENT,
+    )
+    router.add_api_route(
+        path="/pin/verify",
+        endpoint=verify_pin,
+        methods=["POST"],
+        response_model=PinVerifyResultSchema,
+        status_code=status.HTTP_200_OK,
+    )
+    router.add_api_route(
+        path="/pin/status",
+        endpoint=get_pin_status,
+        methods=["GET"],
+        response_model=PinStatusSchema,
         status_code=status.HTTP_200_OK,
     )
     return router

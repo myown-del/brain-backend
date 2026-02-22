@@ -16,6 +16,7 @@ class UserDB(Base, CreatedUpdatedMixin):
     username: Mapped[str | None] = mapped_column(String, nullable=True)
     first_name: Mapped[str] = mapped_column(String, nullable=False)
     last_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    pin_hash: Mapped[str | None] = mapped_column(String(length=255), nullable=True)
     profile_picture_file_id: Mapped[UUID | None] = mapped_column(
         Uuid,
         ForeignKey("s3_files.id", ondelete="SET NULL", onupdate="CASCADE"),

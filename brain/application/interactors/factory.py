@@ -35,7 +35,9 @@ from brain.application.interactors.auth.delete_api_key import DeleteApiKeyIntera
 from brain.application.interactors.auth.get_api_keys import GetApiKeysInteractor
 from brain.application.interactors.auth.interactor import AuthInteractor
 from brain.application.interactors.auth.request_authorization import RequestAuthorizationInteractor
+from brain.application.interactors.auth.set_user_pin import SetUserPinInteractor
 from brain.application.interactors.auth.session_interactor import TelegramBotAuthSessionInteractor
+from brain.application.interactors.auth.verify_user_pin import VerifyUserPinInteractor
 from brain.application.interactors.users.update_all_profile_pictures import UpdateAllUsersProfilePicturesInteractor
 from brain.application.services.api_key_authorization import ApiKeyAuthorizationService
 from brain.application.services.auth_tokens import AuthTokensService
@@ -46,6 +48,7 @@ from brain.application.services.note_crud import NoteCreationService, NoteDeleti
 from brain.application.services.note_keyword_sync import NoteKeywordSyncService
 from brain.application.services.note_lookup import NoteLookupService
 from brain.application.services.note_titles import NoteTitleService
+from brain.application.services.pin_verification import PinVerificationService
 from brain.application.services.user_lookup import UserLookupService
 from brain.application.services.user_profile_picture import UserProfilePictureService
 from brain.domain.services.note_text import NoteTextService
@@ -55,6 +58,7 @@ class InteractorProvider(Provider):
     get_user_lookup_service = provide(UserLookupService, scope=Scope.REQUEST)
     get_user_profile_picture_service = provide(UserProfilePictureService, scope=Scope.REQUEST)
     get_auth_tokens_service = provide(AuthTokensService, scope=Scope.REQUEST)
+    get_pin_verification_service = provide(PinVerificationService, scope=Scope.REQUEST)
     get_api_key_authorization_service = provide(ApiKeyAuthorizationService, scope=Scope.REQUEST)
     get_note_creation_service = provide(NoteCreationService, scope=Scope.REQUEST)
     get_note_update_service = provide(NoteUpdateService, scope=Scope.REQUEST)
@@ -107,6 +111,8 @@ class InteractorProvider(Provider):
     get_delete_api_key_interactor = provide(DeleteApiKeyInteractor, scope=Scope.REQUEST)
     get_authorize_api_key_interactor = provide(AuthorizeApiKeyInteractor, scope=Scope.REQUEST)
     get_telegram_bot_auth_session_interactor = provide(TelegramBotAuthSessionInteractor, scope=Scope.REQUEST)
+    get_set_user_pin_interactor = provide(SetUserPinInteractor, scope=Scope.REQUEST)
+    get_verify_user_pin_interactor = provide(VerifyUserPinInteractor, scope=Scope.REQUEST)
 
     get_export_notes_interactor = provide(ExportNotesInteractor, scope=Scope.REQUEST)
     get_import_notes_interactor = provide(ImportNotesInteractor, scope=Scope.REQUEST)

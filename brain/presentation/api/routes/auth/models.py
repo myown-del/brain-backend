@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class JwtTokenSchema(BaseModel):
@@ -26,3 +26,19 @@ class TelegramBotAuthSessionSchema(BaseModel):
     jwt_token_id: UUID | None = None
     created_at: datetime
     jwt_token: JwtTokenSchema | None = None
+
+
+class SetPinSchema(BaseModel):
+    pin: str = Field(pattern=r"^\d{4,6}$")
+
+
+class VerifyPinSchema(BaseModel):
+    pin: str = Field(pattern=r"^\d{4,6}$")
+
+
+class PinVerifyResultSchema(BaseModel):
+    verified: bool
+
+
+class PinStatusSchema(BaseModel):
+    is_pin_set: bool

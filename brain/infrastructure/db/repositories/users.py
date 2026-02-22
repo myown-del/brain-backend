@@ -32,16 +32,10 @@ class UsersRepository(IUsersRepository):
         old_db_model.username = entity.username
         old_db_model.first_name = entity.first_name
         old_db_model.last_name = entity.last_name
+        old_db_model.pin_hash = entity.pin_hash
         old_db_model.profile_picture_file_id = entity.profile_picture_file_id
         old_db_model.updated_at = utc_now()
         await self._session.flush()
-
-    async def get_by_telegram_id(self, telegram_id: int) -> User | None:
-        query = select(UserDB).where(UserDB.telegram_id == telegram_id)
-        result = await self._session.execute(query)
-        db_model = result.scalar()
-        if db_model:
-            return map_user_to_dm(db_model)
 
     async def get_by_telegram_id(self, telegram_id: int) -> User | None:
         query = select(UserDB).where(UserDB.telegram_id == telegram_id)
