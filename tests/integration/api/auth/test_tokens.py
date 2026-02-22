@@ -11,6 +11,12 @@ from brain.domain.entities.user import User
 from brain.presentation.api.factory import create_bare_app
 
 
+def _parse_api_datetime(value: str) -> datetime:
+    if value.endswith("Z"):
+        value = value[:-1] + "+00:00"
+    return datetime.fromisoformat(value)
+
+
 @pytest.mark.asyncio
 async def test_fake_auth_creates_tokens(
     dishka: AsyncContainer,
@@ -42,8 +48,8 @@ async def test_fake_auth_creates_tokens(
         payload = response.json()
         assert payload["access_token"]
         assert payload["refresh_token"]
-        assert datetime.fromisoformat(payload["expires_at"]).tzinfo == timezone.utc
-        assert datetime.fromisoformat(payload["refresh_expires_at"]).tzinfo == timezone.utc
+        assert _parse_api_datetime(payload["expires_at"]).tzinfo == timezone.utc
+        assert _parse_api_datetime(payload["refresh_expires_at"]).tzinfo == timezone.utc
     finally:
         config.auth.admin_token = original_admin_token
 

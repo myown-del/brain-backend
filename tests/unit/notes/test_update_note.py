@@ -4,6 +4,7 @@ from uuid import uuid4
 
 from brain.application.interactors.notes.update_note import UpdateNoteInteractor
 from brain.application.interactors.notes.dto import UpdateNote
+from brain.application.services.note_crud import NoteUpdateService
 from brain.domain.entities.note import Note
 from brain.domain.value_objects import LinkInterval
 from brain.application.abstractions.repositories.notes import INotesRepository
@@ -64,13 +65,16 @@ def keyword_sync_service():
 def interactor(
     notes_repo, notes_graph_repo, keywords_repo, keyword_note_service, note_title_service, keyword_sync_service
 ):
-    return UpdateNoteInteractor(
+    note_update_service = NoteUpdateService(
         notes_repo=notes_repo,
         notes_graph_repo=notes_graph_repo,
         keywords_repo=keywords_repo,
         keyword_note_service=keyword_note_service,
         note_title_service=note_title_service,
         keyword_sync_service=keyword_sync_service,
+    )
+    return UpdateNoteInteractor(
+        note_update_service=note_update_service,
     )
 
 

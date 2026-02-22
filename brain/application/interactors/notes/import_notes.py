@@ -1,17 +1,15 @@
+import io
 import json
 import zipfile
-import io
-from uuid import uuid4, UUID
+from uuid import UUID, uuid4
 
 from brain.application.abstractions.repositories.notes import INotesRepository
-from brain.application.abstractions.repositories.notes_graph import (
-    INotesGraphRepository,
-)
-from brain.application.interactors.users.get_user import GetUserInteractor
-from brain.application.services.keyword_notes import KeywordNoteService
-from brain.application.services.note_titles import NoteTitleService
-from brain.application.services.note_keyword_sync import NoteKeywordSyncService
+from brain.application.abstractions.repositories.notes_graph import INotesGraphRepository
 from brain.application.interactors.notes.exceptions import NoteTitleAlreadyExistsException
+from brain.application.services.keyword_notes import KeywordNoteService
+from brain.application.services.note_keyword_sync import NoteKeywordSyncService
+from brain.application.services.note_titles import NoteTitleService
+from brain.application.services.user_lookup import UserLookupService
 from brain.domain.entities.note import Note
 from brain.domain.time import parse_iso_datetime
 
@@ -19,14 +17,14 @@ from brain.domain.time import parse_iso_datetime
 class ImportNotesInteractor:
     def __init__(
         self,
-        get_user_interactor: GetUserInteractor,
+        user_lookup_service: UserLookupService,
         notes_repo: INotesRepository,
         notes_graph_repo: INotesGraphRepository,
         keyword_note_service: KeywordNoteService,
         note_title_service: NoteTitleService,
         keyword_sync_service: NoteKeywordSyncService,
     ):
-        self._get_user_interactor = get_user_interactor
+        self._user_lookup_service = user_lookup_service
         self._notes_repo = notes_repo
         self._notes_graph_repo = notes_graph_repo
         self._keyword_note_service = keyword_note_service
@@ -34,7 +32,7 @@ class ImportNotesInteractor:
         self._keyword_sync_service = keyword_sync_service
 
     async def import_notes(self, user_telegram_id: int, zip_bytes: bytes) -> None:
-        user = await self._get_user_interactor.get_user_by_telegram_id(user_telegram_id)
+        user = await self._user_lookup_service.get_user_by_telegram_id(user_telegram_id)
 
         try:
             with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zip_file:
@@ -47,7 +45,6 @@ class ImportNotesInteractor:
                             note_data = json.load(f)
                             await self._import_single_note(user.id, note_data)
                         except Exception:
-                            # Skip malformed files
                             continue
         except zipfile.BadZipFile:
             raise ValueError("Invalid zip file")
@@ -56,14 +53,10 @@ class ImportNotesInteractor:
         title = note_data.get("title")
         text = note_data.get("text")
         is_pinned = bool(note_data.get("is_pinned", False))
-        # We ignore ID from import, generate new one
-        # We also ignore user_id from import, use current user
 
         if not title:
             return
 
-        # Check title uniqueness
-        # If exists, we skip this note to avoid overwriting or errors
         try:
             await self._note_title_service.ensure_unique_title(user_id, title)
         except NoteTitleAlreadyExistsException:

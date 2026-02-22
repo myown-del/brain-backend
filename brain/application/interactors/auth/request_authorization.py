@@ -1,22 +1,17 @@
-from brain.application.interactors.auth.authorize_api_key import (
-    AuthorizeApiKeyInteractor,
-)
-from brain.application.interactors.auth.exceptions import (
-    ApiKeyInvalidException,
-    AuthorizationHeaderRequiredException,
-)
-from brain.application.interactors.auth.interactor import AuthInteractor
+from brain.application.interactors.auth.exceptions import ApiKeyInvalidException, AuthorizationHeaderRequiredException
+from brain.application.services.api_key_authorization import ApiKeyAuthorizationService
+from brain.application.services.auth_tokens import AuthTokensService
 from brain.domain.entities.user import User
 
 
-class AuthorizationOrchestrator:
+class RequestAuthorizationInteractor:
     def __init__(
         self,
-        auth_interactor: AuthInteractor,
-        api_key_interactor: AuthorizeApiKeyInteractor,
+        auth_tokens_service: AuthTokensService,
+        api_key_authorization_service: ApiKeyAuthorizationService,
     ):
-        self._auth_interactor = auth_interactor
-        self._api_key_interactor = api_key_interactor
+        self._auth_tokens_service = auth_tokens_service
+        self._api_key_authorization_service = api_key_authorization_service
 
     @staticmethod
     def _extract_bearer_token(value: str | None) -> str | None:
@@ -33,7 +28,7 @@ class AuthorizationOrchestrator:
     ) -> User:
         if api_key_header:
             try:
-                return await self._api_key_interactor.authorize(api_key_header)
+                return await self._api_key_authorization_service.authorize(api_key_header)
             except ApiKeyInvalidException:
                 if not authorization_header:
                     raise
@@ -42,4 +37,4 @@ class AuthorizationOrchestrator:
         if not token:
             raise AuthorizationHeaderRequiredException()
 
-        return await self._auth_interactor.authorize_by_token(token)
+        return await self._auth_tokens_service.authorize_by_token(token)

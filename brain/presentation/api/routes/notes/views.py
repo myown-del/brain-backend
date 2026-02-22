@@ -410,14 +410,6 @@ def get_router() -> APIRouter:
         status_code=status.HTTP_200_OK,
     )
     router.add_api_route(
-        path="/{note_id}",
-        endpoint=get_note,
-        methods=["GET"],
-        response_model=ReadNoteSchema,
-        summary="Get note by id",
-        status_code=status.HTTP_200_OK,
-    )
-    router.add_api_route(
         path="",
         endpoint=create_note,
         methods=["POST"],
@@ -450,6 +442,28 @@ def get_router() -> APIRouter:
         status_code=status.HTTP_200_OK,
     )
     router.add_api_route(
+        path="/export",
+        endpoint=export_notes,
+        methods=["GET"],
+        summary="Export notes",
+        status_code=status.HTTP_200_OK,
+    )
+    router.add_api_route(
+        path="/import",
+        endpoint=import_notes,
+        methods=["POST"],
+        summary="Import notes",
+        status_code=status.HTTP_204_NO_CONTENT,
+    )
+    router.add_api_route(
+        path="/{note_id}",
+        endpoint=get_note,
+        methods=["GET"],
+        response_model=ReadNoteSchema,
+        summary="Get note by id",
+        status_code=status.HTTP_200_OK,
+    )
+    router.add_api_route(
         path="/{note_id}",
         endpoint=delete_note,
         methods=["DELETE"],
@@ -463,19 +477,5 @@ def get_router() -> APIRouter:
         response_model=ReadNoteSchema,
         summary="Update note",
         status_code=status.HTTP_200_OK,
-    )
-    router.add_api_route(
-        path="/export",
-        endpoint=export_notes,
-        methods=["GET"],
-        summary="Export notes",
-        status_code=status.HTTP_200_OK,
-    )
-    router.add_api_route(
-        path="/import",
-        endpoint=import_notes,
-        methods=["POST"],
-        summary="Import notes",
-        status_code=status.HTTP_204_NO_CONTENT,
     )
     return router

@@ -43,10 +43,12 @@ def client(event_loop):
             self,
             file_storage: IFileStorage,
             s3_files_repo: IS3FilesRepository,
+            s3_config: S3Config,
         ) -> UploadFileInteractor:
             return UploadFileInteractor(
                 file_storage=file_storage,
                 s3_files_repo=s3_files_repo,
+                s3_config=s3_config,
             )
 
         @provide(provides=IFileStorage)

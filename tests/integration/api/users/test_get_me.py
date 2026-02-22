@@ -20,6 +20,12 @@ from brain.presentation.api.factory import create_bare_app
 ApiClientFactory = Callable[[FastAPI], AsyncIterator[AsyncClient]]
 
 
+def _parse_api_datetime(value: str) -> datetime:
+    if value.endswith("Z"):
+        value = value[:-1] + "+00:00"
+    return datetime.fromisoformat(value)
+
+
 @pytest.fixture
 def api_client() -> ApiClientFactory:
     @asynccontextmanager
@@ -93,8 +99,8 @@ async def test_get_me_returns_user_info(
     assert payload["username"] == stored_user.username
     assert payload["first_name"] == stored_user.first_name
     assert payload["last_name"] == stored_user.last_name
-    assert payload["created_at"] == stored_user.created_at.isoformat()
-    assert payload["updated_at"] == stored_user.updated_at.isoformat()
+    assert _parse_api_datetime(payload["created_at"]) == stored_user.created_at
+    assert _parse_api_datetime(payload["updated_at"]) == stored_user.updated_at
 
     assert payload["profile_picture"] is not None
     assert payload["profile_picture"]["id"] == str(profile_picture.id)

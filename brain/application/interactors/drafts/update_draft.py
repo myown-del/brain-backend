@@ -37,8 +37,12 @@ class UpdateDraftInteractor:
 
         draft.updated_at = utc_now()
         await self._drafts_repo.update(draft)
-        draft.hashtags = await self._hashtag_sync_service.sync(
+        hashtags = await self._hashtag_sync_service.sync(
             draft_id=draft.id,
             text=draft.text,
         )
-        return draft
+        updated_draft = await self._drafts_repo.get_by_id(draft.id)
+        if updated_draft is None:
+            raise DraftNotFoundException()
+        updated_draft.hashtags = hashtags
+        return updated_draft

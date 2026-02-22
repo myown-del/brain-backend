@@ -3,9 +3,6 @@ from dishka.integrations.fastapi import inject
 from fastapi import HTTPException, Header
 from starlette import status
 
-from brain.application.orchestrators.authorization import (
-    AuthorizationOrchestrator,
-)
 from brain.application.interactors.auth.exceptions import (
     ApiKeyInvalidException,
     AuthorizationHeaderRequiredException,
@@ -13,6 +10,7 @@ from brain.application.interactors.auth.exceptions import (
     JwtTokenInvalidException,
 )
 from brain.application.interactors.auth.interactor import AuthInteractor
+from brain.application.interactors.auth.request_authorization import RequestAuthorizationInteractor
 
 
 def _extract_bearer_token(value: str | None) -> str | None:
@@ -51,12 +49,12 @@ async def get_user_from_request(
 
 @inject
 async def get_notes_user_from_request(
-    authorization_orchestrator: FromDishka[AuthorizationOrchestrator],
+    request_authorization_interactor: FromDishka[RequestAuthorizationInteractor],
     token: str | None = Header(default=None, alias="Authorization"),
     api_key: str | None = Header(default=None, alias="X-API-Key"),
 ):
     try:
-        return await authorization_orchestrator.authorize(
+        return await request_authorization_interactor.authorize(
             authorization_header=token,
             api_key_header=api_key,
         )
