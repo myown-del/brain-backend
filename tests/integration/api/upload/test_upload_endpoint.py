@@ -9,9 +9,27 @@ from dishka.integrations.fastapi import setup_dishka
 
 from brain.application.abstractions.repositories.s3_files import IS3FilesRepository
 from brain.application.abstractions.storage.files import IFileStorage
+from brain.application.abstractions.uow import IUnitOfWork, UnitOfWorkFactory
 from brain.application.interactors.upload_file import UploadFileInteractor
 from brain.presentation.api.factory import create_bare_app
 from brain.config.models import APIConfig, S3Config
+
+
+class FakeUnitOfWork(IUnitOfWork):
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        return None
+
+    async def commit(self) -> None:
+        return None
+
+    async def rollback(self) -> None:
+        return None
+
+    async def flush(self) -> None:
+        return None
 
 
 @pytest.fixture
@@ -44,11 +62,13 @@ def client(event_loop):
             file_storage: IFileStorage,
             s3_files_repo: IS3FilesRepository,
             s3_config: S3Config,
+            uow_factory: UnitOfWorkFactory,
         ) -> UploadFileInteractor:
             return UploadFileInteractor(
                 file_storage=file_storage,
                 s3_files_repo=s3_files_repo,
                 s3_config=s3_config,
+                uow_factory=uow_factory,
             )
 
         @provide(provides=IFileStorage)
@@ -62,6 +82,10 @@ def client(event_loop):
         @provide
         def get_s3_config(self) -> S3Config:
             return s3_config
+
+        @provide(provides=UnitOfWorkFactory)
+        def get_uow_factory(self) -> UnitOfWorkFactory:
+            return lambda: FakeUnitOfWork()
 
     # App
     app = create_bare_app(api_config)

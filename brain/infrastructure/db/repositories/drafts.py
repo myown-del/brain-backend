@@ -45,7 +45,7 @@ class DraftsRepository(IDraftsRepository):
     async def create(self, entity: Draft) -> None:
         db_model = map_draft_to_db(entity)
         self._session.add(db_model)
-        await self._session.commit()
+        await self._session.flush()
 
     async def get_by_id(self, draft_id: UUID) -> Draft | None:
         stmt = (
@@ -117,7 +117,7 @@ class DraftsRepository(IDraftsRepository):
         db_model.text = entity.text
         db_model.file_id = entity.file_id
         db_model.updated_at = ensure_utc_datetime(entity.updated_at) or utc_now()
-        await self._session.commit()
+        await self._session.flush()
 
     async def delete_by_id(self, draft_id: UUID) -> None:
         stmt = select(DraftDB).where(DraftDB.id == draft_id)
@@ -126,12 +126,12 @@ class DraftsRepository(IDraftsRepository):
         if db_model is None:
             return
         await self._session.delete(db_model)
-        await self._session.commit()
+        await self._session.flush()
 
     async def delete_all(self) -> None:
         await self._session.execute(delete(DraftHashtagDB))
         await self._session.execute(text("DELETE FROM drafts"))
-        await self._session.commit()
+        await self._session.flush()
 
     async def get_draft_creation_stats_by_user_id(
         self,
@@ -162,3 +162,4 @@ class DraftsRepository(IDraftsRepository):
                 ),
             )
         return stats
+

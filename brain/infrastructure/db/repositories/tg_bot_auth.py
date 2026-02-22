@@ -23,7 +23,7 @@ class TelegramBotAuthSessionsRepository(ITelegramBotAuthSessionsRepository):
     async def create(self, entity: TelegramBotAuthSession) -> None:
         db_model = map_telegram_bot_auth_session_to_db(entity)
         self._session.add(db_model)
-        await self._session.commit()
+        await self._session.flush()
 
     async def get_by_id(self, session_id: str) -> TelegramBotAuthSession | None:
         query = select(TelegramBotAuthSessionDB).where(
@@ -49,5 +49,6 @@ class TelegramBotAuthSessionsRepository(ITelegramBotAuthSessionsRepository):
             .values(user_id=telegram_id, jwt_token_id=jwt_token_id)
         )
         result = await self._session.execute(stmt)
-        await self._session.commit()
+        await self._session.flush()
         return bool(result.rowcount)
+

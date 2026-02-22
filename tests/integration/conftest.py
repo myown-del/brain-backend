@@ -22,6 +22,7 @@ from tests.fixtures.profile_picture_storage_provider import TestProfilePictureSt
 from tests.fixtures.graph_provider import TestGraphProvider, TestNeo4jConfigProvider
 from tests.fixtures.profile_picture_provider import TestProfilePictureProvider
 from tests.fixtures.bot_provider import MockBotProvider
+from tests.integration.utils.uow import commit_repo_hub
 
 
 @pytest_asyncio.fixture(scope="session")
@@ -76,6 +77,7 @@ async def clear_db(repo_hub: RepositoryHub):
     await repo_hub.drafts.delete_all()
     await repo_hub.users.delete_all()
     await repo_hub.notes.delete_all()
+    await commit_repo_hub(repo_hub)
 
 
 @pytest_asyncio.fixture
@@ -95,4 +97,5 @@ async def user(repo_hub: RepositoryHub) -> User:
         last_name="Smith",
     )
     await repo_hub.users.create(user)
+    await commit_repo_hub(repo_hub)
     return user

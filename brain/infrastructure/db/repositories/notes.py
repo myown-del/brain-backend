@@ -24,7 +24,7 @@ class NotesRepository(INotesRepository):
     async def create(self, entity: Note):
         db_model = map_note_to_db(entity)
         self._session.add(db_model)
-        await self._session.commit()
+        await self._session.flush()
 
     async def get_by_user_telegram_id(
         self,
@@ -124,11 +124,11 @@ class NotesRepository(INotesRepository):
         db_model.represents_keyword_id = entity.represents_keyword_id
         db_model.is_pinned = entity.is_pinned
         db_model.updated_at = ensure_utc_datetime(entity.updated_at) or utc_now()
-        await self._session.commit()
+        await self._session.flush()
 
     async def delete_all(self):
         await self._session.execute(text("DELETE FROM notes"))
-        await self._session.commit()
+        await self._session.flush()
 
     async def delete_by_id(self, entity_id: UUID):
         query = (
@@ -138,7 +138,7 @@ class NotesRepository(INotesRepository):
         result = await self._session.execute(query)
         db_model = result.scalar()
         await self._session.delete(db_model)
-        await self._session.commit()
+        await self._session.flush()
 
     async def count_notes_by_user_and_title(
         self,
@@ -290,3 +290,4 @@ class NotesRepository(INotesRepository):
                 ),
             )
         return stats
+

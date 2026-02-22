@@ -19,7 +19,7 @@ class S3FilesRepository(IS3FilesRepository):
     async def create(self, entity: S3File) -> None:
         db_model = map_s3_file_to_db(entity)
         self._session.add(db_model)
-        await self._session.commit()
+        await self._session.flush()
 
     async def _get_db_by_id(self, entity_id: UUID) -> S3FileDB | None:
         query = select(S3FileDB).where(S3FileDB.id == bindparam("entity_id"))
@@ -39,7 +39,7 @@ class S3FilesRepository(IS3FilesRepository):
         old_db_model.name = entity.name
         old_db_model.path = entity.path
         old_db_model.content_type = entity.content_type
-        await self._session.commit()
+        await self._session.flush()
 
     async def get_by_user_id(self, user_id: UUID) -> S3File | None:
         query = (
@@ -54,4 +54,5 @@ class S3FilesRepository(IS3FilesRepository):
 
     async def delete_all(self) -> None:
         await self._session.execute(text("DELETE FROM s3_files"))
-        await self._session.commit()
+        await self._session.flush()
+

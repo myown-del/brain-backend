@@ -7,6 +7,7 @@ from brain.domain.entities.user import User
 from brain.infrastructure.db.repositories.hub import RepositoryHub
 from tests.integration.api.drafts.helpers import create_draft
 from tests.integration.api.notes.helpers import create_keyword_note
+from tests.integration.utils.uow import commit_repo_hub
 
 
 @pytest.mark.asyncio
@@ -110,6 +111,7 @@ async def test_append_from_draft_forbidden(
         last_name="User",
     )
     await repo_hub.users.create(entity=other_user)
+    await commit_repo_hub(repo_hub)
     note = await create_keyword_note(
         repo_hub=repo_hub,
         user=user,

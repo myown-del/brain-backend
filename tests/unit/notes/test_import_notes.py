@@ -3,9 +3,23 @@ import json
 import zipfile
 import io
 from unittest.mock import AsyncMock, Mock
+from brain.application.abstractions.uow import IUnitOfWork
 from brain.application.interactors.notes.import_notes import ImportNotesInteractor
 from brain.application.interactors.notes.exceptions import NoteTitleAlreadyExistsException
 from uuid import uuid4
+
+
+class FakeUnitOfWork(IUnitOfWork):
+    def __init__(self):
+        self.commit = AsyncMock()
+        self.rollback = AsyncMock()
+        self.flush = AsyncMock()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        return None
 
 
 @pytest.mark.asyncio
@@ -18,6 +32,7 @@ async def test_import_notes():
     mock_keyword_service = AsyncMock()
     mock_title_service = AsyncMock()
     mock_sync_service = AsyncMock()
+    uow = FakeUnitOfWork()
 
     interactor = ImportNotesInteractor(
         mock_user_interactor,
@@ -26,6 +41,7 @@ async def test_import_notes():
         mock_keyword_service,
         mock_title_service,
         mock_sync_service,
+        lambda: uow,
     )
 
     mock_user = Mock(id=uuid4(), telegram_id=user_id)
@@ -56,6 +72,7 @@ async def test_import_notes():
     assert saved_note.text == "Imported Content"
     mock_graph_repo.upsert_note.assert_called_once_with(saved_note)
     mock_sync_service.sync.assert_called_once_with(saved_note)
+    uow.commit.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -68,6 +85,7 @@ async def test_import_skip_existing():
     mock_keyword_service = AsyncMock()
     mock_title_service = AsyncMock()
     mock_sync_service = AsyncMock()
+    uow = FakeUnitOfWork()
 
     interactor = ImportNotesInteractor(
         mock_user_interactor,
@@ -76,6 +94,7 @@ async def test_import_skip_existing():
         mock_keyword_service,
         mock_title_service,
         mock_sync_service,
+        lambda: uow,
     )
 
     mock_user = Mock(id=uuid4(), telegram_id=user_id)
@@ -92,3 +111,4 @@ async def test_import_skip_existing():
 
     # Verify
     mock_notes_repo.create.assert_not_called()
+    uow.commit.assert_awaited_once()

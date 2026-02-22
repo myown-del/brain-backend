@@ -21,14 +21,14 @@ class HashtagsRepository(IHashtagsRepository):
         )
         stmt = stmt.on_conflict_do_nothing(index_elements=["text"])
         await self._session.execute(stmt)
-        await self._session.commit()
+        await self._session.flush()
 
     async def replace_draft_hashtags(self, draft_id: UUID, texts: list[str]) -> None:
         await self._session.execute(
             delete(DraftHashtagDB).where(DraftHashtagDB.draft_id == draft_id),
         )
+        await self._session.flush()
         if not texts:
-            await self._session.commit()
             return
 
         await self.ensure_hashtags(texts=texts)
@@ -38,7 +38,7 @@ class HashtagsRepository(IHashtagsRepository):
         )
         insert_stmt = insert_stmt.on_conflict_do_nothing(index_elements=["draft_id", "hashtag_text"])
         await self._session.execute(insert_stmt)
-        await self._session.commit()
+        await self._session.flush()
 
     async def get_draft_hashtags(self, draft_id: UUID) -> list[str]:
         stmt = (
@@ -59,3 +59,4 @@ class HashtagsRepository(IHashtagsRepository):
             text=db_model.text,
             created_at=db_model.created_at,
         )
+

@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, ANY
 from uuid import uuid4
 
+from brain.application.abstractions.uow import IUnitOfWork
 from brain.application.interactors.notes.update_note import UpdateNoteInteractor
 from brain.application.interactors.notes.dto import UpdateNote
 from brain.application.services.note_crud import NoteUpdateService
@@ -14,8 +15,18 @@ from brain.application.services.keyword_notes import KeywordNoteService
 from brain.application.services.note_titles import NoteTitleService
 from brain.application.services.note_keyword_sync import NoteKeywordSyncService
 
-# Mock interfaces if they are abstract classes
-# Or just use AsyncMock if they are flexible enough.
+
+class FakeUnitOfWork(IUnitOfWork):
+    def __init__(self):
+        self.commit = AsyncMock()
+        self.rollback = AsyncMock()
+        self.flush = AsyncMock()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        return None
 
 
 @pytest.fixture
@@ -73,9 +84,13 @@ def interactor(
         note_title_service=note_title_service,
         keyword_sync_service=keyword_sync_service,
     )
-    return UpdateNoteInteractor(
+    uow = FakeUnitOfWork()
+    interactor_ = UpdateNoteInteractor(
         note_update_service=note_update_service,
+        uow_factory=lambda: uow,
     )
+    interactor_._test_uow = uow  # type: ignore[attr-defined]
+    return interactor_
 
 
 @pytest.mark.asyncio
@@ -101,6 +116,7 @@ async def test_update_note_with_text_updates_full_content(interactor, notes_repo
     assert updated_note.text == new_text
     keyword_sync_service.sync.assert_called_once()
     assert len(updated_note.link_intervals) == 0
+    interactor._test_uow.commit.assert_awaited_once()  # type: ignore[attr-defined]
 
 
 @pytest.mark.asyncio

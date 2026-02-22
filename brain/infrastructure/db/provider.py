@@ -1,4 +1,5 @@
 from typing import AsyncIterable
+from collections.abc import Callable
 
 from dishka import Provider, provide, Scope
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, AsyncEngine
@@ -21,7 +22,9 @@ from brain.application.abstractions.repositories.tg_bot_auth import (
     ITelegramBotAuthSessionsRepository,
 )
 from brain.application.abstractions.config.models import IDatabaseConfig
+from brain.application.abstractions.uow import IUnitOfWork, UnitOfWorkFactory
 from brain.infrastructure.db.connection import create_engine, create_session_maker
+from brain.infrastructure.db.uow import SqlAlchemyUnitOfWork
 from brain.infrastructure.db.repositories.hub import RepositoryHub
 from brain.infrastructure.db.repositories.drafts import DraftsRepository
 from brain.infrastructure.db.repositories.hashtags import HashtagsRepository
@@ -57,6 +60,13 @@ class DatabaseProvider(Provider):
     async def get_session(self, pool: async_sessionmaker[AsyncSession]) -> AsyncIterable[AsyncSession]:
         async with pool() as session:
             yield session
+
+    @provide(scope=Scope.REQUEST, provides=UnitOfWorkFactory)
+    def get_uow_factory(self, session: AsyncSession) -> Callable[[], IUnitOfWork]:
+        def factory() -> IUnitOfWork:
+            return SqlAlchemyUnitOfWork(session)
+
+        return factory
 
     users_repository = provide(UsersRepository, scope=Scope.REQUEST, provides=IUsersRepository)
     drafts_repository = provide(DraftsRepository, scope=Scope.REQUEST, provides=IDraftsRepository)

@@ -3,8 +3,22 @@ from unittest.mock import Mock, AsyncMock
 
 import pytest
 
+from brain.application.abstractions.uow import IUnitOfWork
 from brain.application.interactors.upload_file import UploadFileInteractor
 from brain.config.models import S3Config
+
+
+class FakeUnitOfWork(IUnitOfWork):
+    def __init__(self):
+        self.commit = AsyncMock()
+        self.rollback = AsyncMock()
+        self.flush = AsyncMock()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        return None
 
 
 @pytest.mark.asyncio
@@ -19,10 +33,12 @@ async def test_upload_file_uses_filename_extension():
         secret_access_key="secret",
         bucket_name="test-bucket",
     )
+    uow = FakeUnitOfWork()
     interactor = UploadFileInteractor(
         file_storage=mock_file_storage,
         s3_files_repo=mock_s3_files_repo,
         s3_config=s3_config,
+        uow_factory=lambda: uow,
     )
 
     # action: upload file with extension in filename
@@ -48,6 +64,7 @@ async def test_upload_file_uses_filename_extension():
     assert create_call["entity"].name == file.name
     assert create_call["entity"].path == file.path
     assert create_call["entity"].content_type == file.content_type
+    uow.commit.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -62,10 +79,12 @@ async def test_upload_file_uses_bin_when_filename_has_no_extension():
         secret_access_key="secret",
         bucket_name="test-bucket",
     )
+    uow = FakeUnitOfWork()
     interactor = UploadFileInteractor(
         file_storage=mock_file_storage,
         s3_files_repo=mock_s3_files_repo,
         s3_config=s3_config,
+        uow_factory=lambda: uow,
     )
 
     # action: upload file with no extension in filename
@@ -81,3 +100,4 @@ async def test_upload_file_uses_bin_when_filename_has_no_extension():
     assert file.path == upload_call["object_name"]
     assert file.content_type == "application/octet-stream"
     assert file.url == f"http://files.example.com/{upload_call['object_name']}"
+    uow.commit.assert_awaited_once()

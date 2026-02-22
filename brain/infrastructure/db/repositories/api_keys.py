@@ -19,7 +19,7 @@ class ApiKeysRepository(IApiKeysRepository):
     async def create(self, entity: ApiKey) -> None:
         db_model = map_api_key_to_db(entity)
         self._session.add(db_model)
-        await self._session.commit()
+        await self._session.flush()
 
     async def get_by_hash(self, key_hash: str) -> ApiKey | None:
         query = select(ApiKeyDB).where(ApiKeyDB.key_hash == key_hash)
@@ -40,5 +40,6 @@ class ApiKeysRepository(IApiKeysRepository):
             ApiKeyDB.user_id == user_id,
         )
         result = await self._session.execute(stmt)
-        await self._session.commit()
+        await self._session.flush()
         return result.rowcount > 0
+

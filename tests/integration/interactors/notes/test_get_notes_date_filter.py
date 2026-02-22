@@ -8,6 +8,7 @@ from brain.application.interactors import GetNotesInteractor
 from brain.domain.entities.note import Note
 from brain.domain.entities.user import User
 from brain.infrastructure.db.repositories.hub import RepositoryHub
+from tests.integration.utils.uow import commit_repo_hub
 
 
 async def _create_note_with_created_at(
@@ -29,6 +30,7 @@ async def _create_note_with_created_at(
         link_intervals=[],
     )
     await repo_hub.notes.create(note)
+    await commit_repo_hub(repo_hub)
     return note
 
 

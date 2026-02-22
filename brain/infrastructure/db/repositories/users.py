@@ -17,7 +17,7 @@ class UsersRepository(IUsersRepository):
     async def create(self, entity: User) -> None:
         db_model = map_user_to_db(entity)
         self._session.add(db_model)
-        await self._session.commit()
+        await self._session.flush()
 
     async def _get_db_by_id(self, entity_id: UUID) -> User | None:
         query = select(UserDB).where(UserDB.id == bindparam("entity_id"))
@@ -34,7 +34,7 @@ class UsersRepository(IUsersRepository):
         old_db_model.last_name = entity.last_name
         old_db_model.profile_picture_file_id = entity.profile_picture_file_id
         old_db_model.updated_at = utc_now()
-        await self._session.commit()
+        await self._session.flush()
 
     async def get_by_telegram_id(self, telegram_id: int) -> User | None:
         query = select(UserDB).where(UserDB.telegram_id == telegram_id)
@@ -57,10 +57,11 @@ class UsersRepository(IUsersRepository):
 
     async def delete_all(self) -> None:
         await self._session.execute(text("DELETE FROM users"))
-        await self._session.commit()
+        await self._session.flush()
 
     async def get_all(self) -> list[User]:
         query = select(UserDB)
         result = await self._session.execute(query)
         db_models = result.scalars().all()
         return [map_user_to_dm(db_model) for db_model in db_models]
+

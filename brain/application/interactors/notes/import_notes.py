@@ -5,6 +5,7 @@ from uuid import UUID, uuid4
 
 from brain.application.abstractions.repositories.notes import INotesRepository
 from brain.application.abstractions.repositories.notes_graph import INotesGraphRepository
+from brain.application.abstractions.uow import UnitOfWorkFactory
 from brain.application.interactors.notes.exceptions import NoteTitleAlreadyExistsException
 from brain.application.services.keyword_notes import KeywordNoteService
 from brain.application.services.note_keyword_sync import NoteKeywordSyncService
@@ -23,6 +24,7 @@ class ImportNotesInteractor:
         keyword_note_service: KeywordNoteService,
         note_title_service: NoteTitleService,
         keyword_sync_service: NoteKeywordSyncService,
+        uow_factory: UnitOfWorkFactory,
     ):
         self._user_lookup_service = user_lookup_service
         self._notes_repo = notes_repo
@@ -30,24 +32,27 @@ class ImportNotesInteractor:
         self._keyword_note_service = keyword_note_service
         self._note_title_service = note_title_service
         self._keyword_sync_service = keyword_sync_service
+        self._uow_factory = uow_factory
 
     async def import_notes(self, user_telegram_id: int, zip_bytes: bytes) -> None:
-        user = await self._user_lookup_service.get_user_by_telegram_id(user_telegram_id)
+        async with self._uow_factory() as uow:
+            user = await self._user_lookup_service.get_user_by_telegram_id(user_telegram_id)
 
-        try:
-            with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zip_file:
-                for filename in zip_file.namelist():
-                    if not filename.endswith(".json"):
-                        continue
-
-                    with zip_file.open(filename) as f:
-                        try:
-                            note_data = json.load(f)
-                            await self._import_single_note(user.id, note_data)
-                        except Exception:
+            try:
+                with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zip_file:
+                    for filename in zip_file.namelist():
+                        if not filename.endswith(".json"):
                             continue
-        except zipfile.BadZipFile:
-            raise ValueError("Invalid zip file")
+
+                        with zip_file.open(filename) as f:
+                            try:
+                                note_data = json.load(f)
+                                await self._import_single_note(user.id, note_data)
+                            except Exception:
+                                continue
+            except zipfile.BadZipFile:
+                raise ValueError("Invalid zip file")
+            await uow.commit()
 
     async def _import_single_note(self, user_id: UUID, note_data: dict) -> None:
         title = note_data.get("title")

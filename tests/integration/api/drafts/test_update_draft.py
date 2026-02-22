@@ -10,6 +10,7 @@ from brain.domain.services.diffs import get_patches_str
 from brain.infrastructure.db.repositories.hub import RepositoryHub
 from tests.integration.api.conftest import ApiClientFactory
 from tests.integration.api.drafts.helpers import create_draft
+from tests.integration.utils.uow import commit_repo_hub
 
 
 @pytest.mark.asyncio
@@ -110,6 +111,7 @@ async def test_update_draft_forbidden(
         last_name="User",
     )
     await repo_hub.users.create(entity=other_user)
+    await commit_repo_hub(repo_hub)
     other_draft = await create_draft(
         repo_hub=repo_hub,
         user=other_user,
@@ -176,6 +178,7 @@ async def test_update_draft_file_id(
         content_type="text/plain",
     )
     await repo_hub.s3_files.create(entity=file)
+    await commit_repo_hub(repo_hub)
 
     # action: set draft file id
     async with api_client(notes_app) as client:

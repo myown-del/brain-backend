@@ -9,6 +9,7 @@ from brain.domain.entities.user import User
 from brain.infrastructure.db.repositories.hub import RepositoryHub
 from tests.integration.api.drafts.helpers import create_draft
 from tests.integration.api.notes.helpers import create_keyword_note
+from tests.integration.utils.uow import commit_repo_hub
 
 
 @pytest.mark.asyncio
@@ -103,6 +104,7 @@ async def test_create_note_from_draft_appends_attached_file_markdown(
         content_type="image/png",
     )
     await repo_hub.s3_files.create(entity=file)
+    await commit_repo_hub(repo_hub)
     draft = await create_draft(
         repo_hub=repo_hub,
         user=user,
@@ -168,6 +170,7 @@ async def test_create_note_from_draft_forbidden(
         last_name="User",
     )
     await repo_hub.users.create(entity=other_user)
+    await commit_repo_hub(repo_hub)
     draft = await create_draft(
         repo_hub=repo_hub,
         user=other_user,
@@ -185,5 +188,37 @@ async def test_create_note_from_draft_forbidden(
     # check: forbidden response and draft is kept
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert response.json()["detail"] == "Forbidden"
+    stored_draft = await repo_hub.drafts.get_by_id(draft_id=draft.id)
+    assert stored_draft is not None
+
+
+@pytest.mark.asyncio
+async def test_create_note_from_draft_rolls_back_when_note_creation_fails(
+    notes_app,
+    api_client,
+    repo_hub: RepositoryHub,
+    user,
+):
+    await create_keyword_note(
+        repo_hub=repo_hub,
+        user=user,
+        title="Duplicate Title",
+        text="existing",
+    )
+    draft = await create_draft(
+        repo_hub=repo_hub,
+        user=user,
+        text="Draft that must survive rollback",
+    )
+
+    async with api_client(notes_app) as client:
+        response = await client.request(
+            method="POST",
+            url="/api/notes/create-from-draft",
+            json={"draft_id": str(draft.id), "title": "Duplicate Title"},
+        )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["detail"] == "Note title must be unique"
     stored_draft = await repo_hub.drafts.get_by_id(draft_id=draft.id)
     assert stored_draft is not None

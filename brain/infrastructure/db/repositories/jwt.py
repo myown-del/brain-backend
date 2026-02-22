@@ -21,7 +21,7 @@ class JwtRefreshTokensRepository(IJwtRefreshTokensRepository):
     async def create(self, entity: JwtRefreshToken) -> None:
         db_model = map_jwt_refresh_token_to_db(entity)
         self._session.add(db_model)
-        await self._session.commit()
+        await self._session.flush()
 
     async def get_by_id(self, token_id: UUID) -> JwtRefreshToken | None:
         query = select(JwtRefreshTokenDB).where(JwtRefreshTokenDB.id == token_id)
@@ -40,4 +40,5 @@ class JwtRefreshTokensRepository(IJwtRefreshTokensRepository):
     async def delete_by_id(self, token_id: UUID) -> None:
         stmt = delete(JwtRefreshTokenDB).where(JwtRefreshTokenDB.id == token_id)
         await self._session.execute(stmt)
-        await self._session.commit()
+        await self._session.flush()
+

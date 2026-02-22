@@ -73,7 +73,7 @@ class KeywordsRepository(IKeywordsRepository):
             index_elements=["user_id", "name"],
         )
         await self._session.execute(stmt)
-        await self._session.commit()
+        await self._session.flush()
 
     async def replace_note_keywords(
         self,
@@ -85,9 +85,9 @@ class KeywordsRepository(IKeywordsRepository):
         await self._session.execute(
             delete(NoteKeywordDB).where(NoteKeywordDB.note_id == note_id),
         )
+        await self._session.flush()
 
         if not normalized:
-            await self._session.commit()
             return
 
         await self.ensure_keywords(user_id=user_id, names=normalized)
@@ -100,14 +100,13 @@ class KeywordsRepository(IKeywordsRepository):
         result = await self._session.execute(keyword_ids_stmt)
         keyword_ids = [row[0] for row in result.all()]
         if not keyword_ids:
-            await self._session.commit()
             return
 
         insert_stmt = insert(NoteKeywordDB).values(
             [{"note_id": note_id, "keyword_id": keyword_id} for keyword_id in keyword_ids],
         )
         await self._session.execute(insert_stmt)
-        await self._session.commit()
+        await self._session.flush()
 
     async def get_note_keyword_names(self, note_id: UUID) -> list[str]:
         stmt = (
@@ -123,7 +122,7 @@ class KeywordsRepository(IKeywordsRepository):
         await self._session.execute(
             delete(NoteKeywordDB).where(NoteKeywordDB.note_id == note_id),
         )
-        await self._session.commit()
+        await self._session.flush()
 
     async def delete_unused_keywords(self, user_id: UUID, names: list[str]) -> None:
         normalized = self._normalize(names)
@@ -145,4 +144,5 @@ class KeywordsRepository(IKeywordsRepository):
             )
         )  # fmt: skip
         await self._session.execute(stmt)
-        await self._session.commit()
+        await self._session.flush()
+

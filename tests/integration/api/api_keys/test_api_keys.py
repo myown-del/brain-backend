@@ -11,6 +11,7 @@ from brain.config.models import Config
 from brain.domain.entities.user import User
 from brain.infrastructure.db.repositories.hub import RepositoryHub
 from brain.presentation.api.factory import create_bare_app
+from tests.integration.utils.uow import commit_repo_hub
 
 
 @pytest.mark.asyncio
@@ -106,6 +107,7 @@ async def test_get_api_keys_returns_only_current_user_keys(
         last_name="User",
     )
     await repo_hub.users.create(entity=other_user)
+    await commit_repo_hub(repo_hub)
     other_tokens = await auth_interactor.login(other_user.telegram_id)
     async with api_client(app) as client:
         await client.request(
@@ -197,6 +199,7 @@ async def test_delete_api_key_returns_not_found_for_foreign_key(
         last_name="User",
     )
     await repo_hub.users.create(entity=other_user)
+    await commit_repo_hub(repo_hub)
     other_tokens = await auth_interactor.login(other_user.telegram_id)
 
     # setup: create key belonging to other user

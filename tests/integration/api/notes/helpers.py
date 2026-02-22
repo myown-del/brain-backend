@@ -4,6 +4,7 @@ from uuid import uuid4
 from brain.domain.entities.note import Note
 from brain.domain.entities.user import User
 from brain.infrastructure.db.repositories.hub import RepositoryHub
+from tests.integration.utils.uow import commit_repo_hub
 
 
 async def create_keyword_note(
@@ -31,4 +32,5 @@ async def create_keyword_note(
         updated_at=updated_at,
     )
     await repo_hub.notes.create(note)
+    await commit_repo_hub(repo_hub)
     return note

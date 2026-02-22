@@ -16,6 +16,7 @@ from brain.domain.entities.user import User
 from brain.application.interactors.auth.interactor import AuthInteractor
 from brain.infrastructure.db.repositories.hub import RepositoryHub
 from brain.presentation.api.factory import create_bare_app
+from tests.integration.utils.uow import commit_repo_hub
 
 ApiClientFactory = Callable[[FastAPI], AsyncIterator[AsyncClient]]
 
@@ -75,6 +76,7 @@ async def test_get_me_returns_user_info(
     await repo_hub.s3_files.create(entity=profile_picture)
     user.profile_picture_file_id = profile_picture.id
     await repo_hub.users.update(entity=user)
+    await commit_repo_hub(repo_hub)
 
     stored_user = await repo_hub.users.get_by_id(entity_id=user.id)
     auth_interactor = await dishka_request.get(AuthInteractor)

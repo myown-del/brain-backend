@@ -1,4 +1,5 @@
 from brain.application.abstractions.repositories.drafts import IDraftsRepository
+from brain.application.abstractions.uow import UnitOfWorkFactory
 from brain.application.interactors.drafts.dto import UpdateDraft
 from brain.application.interactors.drafts.exceptions import (
     DraftNotFoundException,
@@ -16,33 +17,37 @@ class UpdateDraftInteractor:
         self,
         drafts_repo: IDraftsRepository,
         hashtag_sync_service: DraftHashtagSyncService,
+        uow_factory: UnitOfWorkFactory,
     ):
         self._drafts_repo = drafts_repo
         self._hashtag_sync_service = hashtag_sync_service
+        self._uow_factory = uow_factory
 
     async def update_draft(self, draft_data: UpdateDraft) -> Draft:
-        draft = await self._drafts_repo.get_by_id(draft_data.draft_id)
-        if draft is None:
-            raise DraftNotFoundException()
+        async with self._uow_factory() as uow:
+            draft = await self._drafts_repo.get_by_id(draft_data.draft_id)
+            if draft is None:
+                raise DraftNotFoundException()
 
-        if draft_data.patch is not Unset and draft_data.patch is not None:
-            try:
-                draft.text = apply_patch(draft.text or "", draft_data.patch)
-            except Exception as exc:
-                raise DraftPatchApplyException() from exc
-        elif draft_data.text is not Unset:
-            draft.text = draft_data.text
-        if draft_data.file_id is not Unset:
-            draft.file_id = draft_data.file_id
+            if draft_data.patch is not Unset and draft_data.patch is not None:
+                try:
+                    draft.text = apply_patch(draft.text or "", draft_data.patch)
+                except Exception as exc:
+                    raise DraftPatchApplyException() from exc
+            elif draft_data.text is not Unset:
+                draft.text = draft_data.text
+            if draft_data.file_id is not Unset:
+                draft.file_id = draft_data.file_id
 
-        draft.updated_at = utc_now()
-        await self._drafts_repo.update(draft)
-        hashtags = await self._hashtag_sync_service.sync(
-            draft_id=draft.id,
-            text=draft.text,
-        )
-        updated_draft = await self._drafts_repo.get_by_id(draft.id)
-        if updated_draft is None:
-            raise DraftNotFoundException()
-        updated_draft.hashtags = hashtags
-        return updated_draft
+            draft.updated_at = utc_now()
+            await self._drafts_repo.update(draft)
+            hashtags = await self._hashtag_sync_service.sync(
+                draft_id=draft.id,
+                text=draft.text,
+            )
+            updated_draft = await self._drafts_repo.get_by_id(draft.id)
+            if updated_draft is None:
+                raise DraftNotFoundException()
+            updated_draft.hashtags = hashtags
+            await uow.commit()
+            return updated_draft

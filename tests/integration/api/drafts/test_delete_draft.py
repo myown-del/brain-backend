@@ -8,6 +8,7 @@ from brain.domain.entities.user import User
 from brain.infrastructure.db.repositories.hub import RepositoryHub
 from tests.integration.api.conftest import ApiClientFactory
 from tests.integration.api.drafts.helpers import create_draft
+from tests.integration.utils.uow import commit_repo_hub
 
 
 @pytest.mark.asyncio
@@ -72,6 +73,7 @@ async def test_delete_draft_forbidden(
         last_name="User",
     )
     await repo_hub.users.create(entity=other_user)
+    await commit_repo_hub(repo_hub)
     draft = await create_draft(
         repo_hub=repo_hub,
         user=other_user,

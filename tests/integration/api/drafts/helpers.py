@@ -5,6 +5,7 @@ from brain.domain.entities.draft import Draft
 from brain.domain.entities.user import User
 from brain.domain.services.hashtags import normalize_hashtag_texts
 from brain.infrastructure.db.repositories.hub import RepositoryHub
+from tests.integration.utils.uow import commit_repo_hub
 
 
 async def create_draft(
@@ -29,4 +30,5 @@ async def create_draft(
         draft_id=draft.id,
         texts=normalize_hashtag_texts(hashtags or []),
     )
+    await commit_repo_hub(repo_hub)
     return draft
