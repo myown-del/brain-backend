@@ -72,6 +72,7 @@ async def get_notes(
     from_date: datetime | None = Query(None),
     to_date: datetime | None = Query(None),
     pinned_first: bool = Query(True),
+    include_archived: bool = Query(False),
     user: User = Depends(get_notes_user_from_request),
 ):
     from_date = ensure_utc_datetime(from_date)
@@ -81,6 +82,7 @@ async def get_notes(
         from_date=from_date,
         to_date=to_date,
         pinned_first=pinned_first,
+        include_archived=include_archived,
     )
     return [map_note_to_read_schema(note) for note in notes]
 
@@ -104,6 +106,7 @@ async def search_notes_by_title(
     query: str = Query(..., min_length=1),
     exact_match: bool = Query(False),
     pinned_first: bool = Query(True),
+    include_archived: bool = Query(False),
     user: User = Depends(get_notes_user_from_request),
 ):
     notes = await interactor.search(
@@ -111,6 +114,7 @@ async def search_notes_by_title(
         query=query,
         exact_match=exact_match,
         pinned_first=pinned_first,
+        include_archived=include_archived,
     )
     return [map_note_to_read_schema(note) for note in notes]
 

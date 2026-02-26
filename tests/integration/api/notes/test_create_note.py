@@ -23,6 +23,7 @@ async def test_create_note_success(notes_app, api_client, repo_hub: RepositoryHu
     payload = response.json()
     assert payload["title"] == "New Note"
     assert payload["text"] == "Body"
+    assert payload["is_archived"] is False
     stored = await repo_hub.notes.get_by_title(
         user_id=user.id,
         title="New Note",
@@ -30,6 +31,7 @@ async def test_create_note_success(notes_app, api_client, repo_hub: RepositoryHu
     )
     assert stored is not None
     assert payload["id"] == str(stored.id)
+    assert stored.is_archived is False
 
 
 @pytest.mark.asyncio
@@ -49,12 +51,14 @@ async def test_create_note_generates_untitled(notes_app, api_client, repo_hub: R
     assert response.status_code == status.HTTP_201_CREATED
     payload = response.json()
     assert payload["title"] == "Untitled 1"
+    assert payload["is_archived"] is False
     stored = await repo_hub.notes.get_by_title(
         user_id=user.id,
         title="Untitled 1",
         exact_match=True,
     )
     assert stored is not None
+    assert stored.is_archived is False
 
 
 @pytest.mark.asyncio

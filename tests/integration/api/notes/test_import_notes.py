@@ -8,14 +8,14 @@ from starlette import status
 from brain.infrastructure.db.repositories.hub import RepositoryHub
 
 
-def make_zip_with_note(title: str, text: str | None) -> bytes:
+def make_zip_with_note(title: str, text: str | None, is_archived: bool = False) -> bytes:
     buffer = io.BytesIO()
     with zipfile.ZipFile(
         file=buffer,
         mode="w",
         compression=zipfile.ZIP_DEFLATED,
     ) as zip_file:
-        payload = {"title": title, "text": text}
+        payload = {"title": title, "text": text, "is_archived": is_archived}
         zip_file.writestr(
             zinfo_or_arcname=f"{title}.json",
             data=json.dumps(payload),
@@ -31,7 +31,11 @@ async def test_import_notes_success(
     user,
 ):
     # setup: build a valid zip with one note
-    zip_bytes = make_zip_with_note(title="Imported Note", text="Imported Body")
+    zip_bytes = make_zip_with_note(
+        title="Imported Note",
+        text="Imported Body",
+        is_archived=True,
+    )
 
     # action: upload zip file
     async with api_client(notes_app) as client:
@@ -50,6 +54,7 @@ async def test_import_notes_success(
     )
     assert stored is not None
     assert stored.text == "Imported Body"
+    assert stored.is_archived is True
 
 
 @pytest.mark.asyncio

@@ -25,6 +25,7 @@ class NoteDB(Base, CreatedUpdatedMixin):
         nullable=False,
     )
     is_pinned: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_archived: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     link_intervals: Mapped[list[list[int]]] = mapped_column(JSON, default=list, nullable=False)
 
     user = relationship("UserDB", back_populates="notes", lazy="selectin")

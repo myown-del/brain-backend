@@ -37,3 +37,30 @@ async def test_get_wikilink_suggestions(
         {"title": "Alpha", "represents_keyword": True},
         {"title": "Beta", "represents_keyword": False},
     ]
+
+
+@pytest.mark.asyncio
+async def test_get_wikilink_suggestions_archived_keyword_note_not_treated_as_active(
+    notes_app,
+    api_client,
+    repo_hub: RepositoryHub,
+    user,
+):
+    await create_keyword_note(
+        repo_hub=repo_hub,
+        user=user,
+        title="ArchivedAlpha",
+        text="Text",
+        is_archived=True,
+    )
+    await commit_repo_hub(repo_hub)
+
+    async with api_client(notes_app) as client:
+        response = await client.request(
+            method="GET",
+            url="/api/notes/wikilink-suggestions?query=Archived",
+        )
+
+    assert response.status_code == status.HTTP_200_OK
+    payload = response.json()
+    assert payload == [{"title": "ArchivedAlpha", "represents_keyword": False}]

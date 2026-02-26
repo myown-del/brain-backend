@@ -2,8 +2,8 @@ import pytest
 
 from dishka import AsyncContainer
 
-from brain.application.interactors import CreateNoteInteractor, GetGraphInteractor
-from brain.application.interactors.notes.dto import CreateNote
+from brain.application.interactors import CreateNoteInteractor, GetGraphInteractor, UpdateNoteInteractor
+from brain.application.interactors.notes.dto import CreateNote, UpdateNote
 from brain.domain.entities.user import User
 
 
@@ -136,3 +136,40 @@ async def test_get_graph_query_returns_connected_nodes(
         f"note:{alpha_id}",
     }
     assert f"note:{beta_id}" not in node_ids(graph.nodes)
+
+
+@pytest.mark.asyncio
+async def test_get_graph_excludes_archived_notes(
+    dishka_request: AsyncContainer,
+    user: User,
+):
+    create_interactor = await dishka_request.get(CreateNoteInteractor)
+    update_interactor = await dishka_request.get(UpdateNoteInteractor)
+    graph_interactor = await dishka_request.get(GetGraphInteractor)
+
+    archived_note_id = await create_interactor.create_note(
+        CreateNote(
+            by_user_telegram_id=user.telegram_id,
+            title="ArchivedNode",
+            text="Ref [[VisibleNode]]",
+        ),
+    )
+    visible_note_id = await create_interactor.create_note(
+        CreateNote(
+            by_user_telegram_id=user.telegram_id,
+            title="VisibleNode",
+            text="Visible text",
+        ),
+    )
+
+    await update_interactor.update_note(
+        UpdateNote(
+            note_id=archived_note_id,
+            is_archived=True,
+        ),
+    )
+
+    graph = await graph_interactor.get_graph(user_id=user.id)
+    graph_node_ids = node_ids(graph.nodes)
+    assert f"note:{archived_note_id}" not in graph_node_ids
+    assert f"note:{visible_note_id}" in graph_node_ids

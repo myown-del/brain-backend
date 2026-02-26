@@ -58,6 +58,7 @@ class ImportNotesInteractor:
         title = note_data.get("title")
         text = note_data.get("text")
         is_pinned = bool(note_data.get("is_pinned", False))
+        is_archived = bool(note_data.get("is_archived", False))
 
         if not title:
             return
@@ -93,6 +94,7 @@ class ImportNotesInteractor:
             text=text,
             represents_keyword_id=represents_keyword_id,
             is_pinned=is_pinned,
+            is_archived=is_archived,
             created_at=created_at,
             updated_at=updated_at,
         )

@@ -185,3 +185,32 @@ async def test_update_note_can_set_is_pinned(
     stored = await repo_hub.notes.get_by_id(note.id)
     assert stored is not None
     assert stored.is_pinned is True
+
+
+@pytest.mark.asyncio
+async def test_update_note_can_set_is_archived(
+    notes_app,
+    api_client,
+    repo_hub: RepositoryHub,
+    user,
+):
+    note = await create_keyword_note(
+        repo_hub=repo_hub,
+        user=user,
+        title="Archive Me",
+        text="Text",
+    )
+
+    async with api_client(notes_app) as client:
+        response = await client.request(
+            method="PATCH",
+            url=f"/api/notes/{note.id}",
+            json={"is_archived": True},
+        )
+
+    assert response.status_code == status.HTTP_200_OK
+    payload = response.json()
+    assert payload["is_archived"] is True
+    stored = await repo_hub.notes.get_by_id(note.id)
+    assert stored is not None
+    assert stored.is_archived is True

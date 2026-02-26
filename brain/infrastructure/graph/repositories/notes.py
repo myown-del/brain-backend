@@ -14,7 +14,7 @@ class NotesGraphRepository(INotesGraphRepository):
         self._database = database
         self._tx_accessor = tx_accessor
 
-    async def _run_write(self, query: str, **params: str | list[str] | None) -> None:
+    async def _run_write(self, query: str, **params: str | bool | list[str] | None) -> None:
         tx = await self._tx_accessor.get_tx()
         await tx.run(query, **params)
 
@@ -25,7 +25,8 @@ class NotesGraphRepository(INotesGraphRepository):
                 n.user_id = $user_id,
                 n.title = $title,
                 n.text = $text,
-                n.represents_keyword_id = $represents_keyword_id
+                n.represents_keyword_id = $represents_keyword_id,
+                n.is_archived = $is_archived
         """
         await self._run_write(
             query,
@@ -34,6 +35,7 @@ class NotesGraphRepository(INotesGraphRepository):
             title=note.title,
             text=note.text,
             represents_keyword_id=str(note.represents_keyword_id),
+            is_archived=note.is_archived,
         )
 
     async def sync_connections(
@@ -89,6 +91,7 @@ class NotesGraphRepository(INotesGraphRepository):
                 MATCH (target_note:Note {user_id: $user_id, title: target})
                 WHERE
                     target_note.represents_keyword_id IS NOT NULL
+                    AND (target_note.is_archived IS NULL OR target_note.is_archived = false)
                     AND target_note.id <> $id
                 MERGE (source)-[:LINKS_TO]->(target_note)
                 """,
@@ -102,7 +105,9 @@ class NotesGraphRepository(INotesGraphRepository):
             MATCH (target:Note {id: $id})
             MATCH (k:Keyword {user_id: $user_id, name: $title})
             MATCH (source:Note)-[:HAS_KEYWORD]->(k)
-            WHERE source.id <> target.id
+            WHERE
+                source.id <> target.id
+                AND (source.is_archived IS NULL OR source.is_archived = false)
             MERGE (source)-[:LINKS_TO]->(target)
             """,
             id=str(note.id),
@@ -187,14 +192,18 @@ class NotesGraphRepository(INotesGraphRepository):
                     k.name AS title,
                     EXISTS {
                         MATCH (n:Note {user_id: $user_id, title: k.name})
-                        WHERE n.represents_keyword_id IS NOT NULL
+                        WHERE
+                            n.represents_keyword_id IS NOT NULL
+                            AND (n.is_archived IS NULL OR n.is_archived = false)
                     } AS has_keyword_note,
                     NULL AS represents_keyword,
                     k.name AS keyword_name,
                     NULL AS note_id
                 UNION
                 MATCH (n:Note {user_id: $user_id})
-                WHERE n.title IS NOT NULL
+                WHERE
+                    n.title IS NOT NULL
+                    AND (n.is_archived IS NULL OR n.is_archived = false)
                 RETURN DISTINCT
                     'note' AS kind,
                     'note:' + toString(n.id) AS id,
@@ -225,6 +234,7 @@ class NotesGraphRepository(INotesGraphRepository):
             "    WITH user_id, search_query "
             "    MATCH (n:Note {user_id: user_id}) "
             "    WHERE n.title IS NOT NULL "
+            "    AND (n.is_archived IS NULL OR n.is_archived = false) "
             "    AND toLower(n.title) CONTAINS toLower(search_query) "
             "    RETURN n AS seed "
             "} "
@@ -235,6 +245,7 @@ class NotesGraphRepository(INotesGraphRepository):
             ") AND all(n IN nodes(p) WHERE "
             "    (n:Keyword AND n.user_id = user_id) "
             "    OR (n:Note AND n.user_id = user_id AND n.title IS NOT NULL) "
+            "    AND (n.is_archived IS NULL OR n.is_archived = false) "
             ") "
             "WITH DISTINCT node, user_id "
             "RETURN "
@@ -246,6 +257,7 @@ class NotesGraphRepository(INotesGraphRepository):
             "    CASE WHEN node:Keyword THEN EXISTS { "
             "        MATCH (n:Note {user_id: user_id, title: node.name}) "
             "        WHERE n.represents_keyword_id IS NOT NULL "
+            "        AND (n.is_archived IS NULL OR n.is_archived = false) "
             "    } ELSE NULL END AS has_keyword_note, "
             "    CASE WHEN node:Note "
             "        THEN (node.represents_keyword_id IS NOT NULL) "
@@ -296,6 +308,7 @@ class NotesGraphRepository(INotesGraphRepository):
                 WHERE
                     n.user_id = $user_id
                     AND n.id IN $note_ids
+                    AND (n.is_archived IS NULL OR n.is_archived = false)
                     AND k.user_id = $user_id
                     AND k.name IN $keyword_names
                 RETURN DISTINCT
@@ -309,7 +322,9 @@ class NotesGraphRepository(INotesGraphRepository):
                     type(r) = 'LINKS_TO'
                     AND
                     a.user_id = $user_id
+                    AND (a.is_archived IS NULL OR a.is_archived = false)
                     AND b.user_id = $user_id
+                    AND (b.is_archived IS NULL OR b.is_archived = false)
                     AND a.id IN $note_ids
                     AND b.id IN $note_ids
                 RETURN DISTINCT

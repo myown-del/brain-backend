@@ -18,6 +18,7 @@ class Note(Entity):
     text: str | None = field(default=None, kw_only=True)
     represents_keyword_id: UUID
     is_pinned: bool = field(default=False, kw_only=True)
+    is_archived: bool = field(default=False, kw_only=True)
     updated_at: datetime | None = field(default=None, kw_only=True)
     created_at: datetime | None = field(default=None, kw_only=True)
     link_intervals: list[LinkInterval] = field(default_factory=list, kw_only=True)

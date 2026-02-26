@@ -53,6 +53,7 @@ async def test_import_notes():
         note_data = {
             "title": "Imported Note",
             "text": "Imported Content",
+            "is_archived": True,
         }
         zf.writestr("Imported Note.json", json.dumps(note_data))
 
@@ -70,6 +71,7 @@ async def test_import_notes():
     saved_note = mock_notes_repo.create.call_args[0][0]
     assert saved_note.title == "Imported Note"
     assert saved_note.text == "Imported Content"
+    assert saved_note.is_archived is True
     mock_graph_repo.upsert_note.assert_called_once_with(saved_note)
     mock_sync_service.sync.assert_called_once_with(saved_note)
     uow.commit.assert_awaited_once()

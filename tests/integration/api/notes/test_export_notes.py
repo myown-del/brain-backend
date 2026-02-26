@@ -22,6 +22,7 @@ async def test_export_notes(
         user=user,
         title="Alpha Note",
         text="Body",
+        is_archived=True,
     )
 
     # action: request export
@@ -45,3 +46,4 @@ async def test_export_notes(
     assert data["id"] == str(note.id)
     assert data["title"] == "Alpha Note"
     assert data["text"] == "Body"
+    assert data["is_archived"] is True

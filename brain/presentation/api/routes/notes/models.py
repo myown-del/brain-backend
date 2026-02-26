@@ -9,6 +9,7 @@ class ReadNoteSchema(BaseModel):
     title: str
     text: str | None
     is_pinned: bool
+    is_archived: bool
     created_at: datetime
     updated_at: datetime
 
@@ -28,6 +29,7 @@ class UpdateNoteSchema(BaseModel):
     text: str | None = None
     patch: str | None = None
     is_pinned: bool | None = None
+    is_archived: bool | None = None
 
 
 class WikilinkSuggestionSchema(BaseModel):

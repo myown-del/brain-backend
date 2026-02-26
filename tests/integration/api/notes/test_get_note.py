@@ -34,6 +34,7 @@ async def test_get_note_success(
     assert payload["id"] == str(note.id)
     assert payload["title"] == "Read Me"
     assert payload["text"] == "Note text"
+    assert payload["is_archived"] is False
 
 
 @pytest.mark.asyncio

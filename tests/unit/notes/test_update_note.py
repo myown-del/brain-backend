@@ -277,3 +277,23 @@ async def test_update_note_syncs_when_new_link_added(interactor, notes_repo, key
 
     # Sync MUST be called because of new brackets in patch
     keyword_sync_service.sync.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_update_note_can_set_is_archived(interactor, notes_repo):
+    note_id = uuid4()
+    existing_note = Note(
+        id=note_id,
+        user_id=uuid4(),
+        title="Title",
+        text="Text",
+        represents_keyword_id=uuid4(),
+        is_archived=False,
+        link_intervals=[],
+    )
+    notes_repo.get_by_id.return_value = existing_note
+
+    dto = UpdateNote(note_id=note_id, is_archived=True)
+    updated_note = await interactor.update_note(dto)
+
+    assert updated_note.is_archived is True

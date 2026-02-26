@@ -14,6 +14,7 @@ class SearchNotesByTitleInteractor:
         query: str,
         exact_match: bool = False,
         pinned_first: bool = True,
+        include_archived: bool = False,
     ) -> list[Note]:
         raw_query = query or ""
         normalized_query = raw_query if exact_match else raw_query.strip()
@@ -25,4 +26,5 @@ class SearchNotesByTitleInteractor:
             query=normalized_query,
             exact_match=exact_match,
             pinned_first=pinned_first,
+            include_archived=include_archived,
         )

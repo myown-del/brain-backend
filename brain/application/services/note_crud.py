@@ -81,6 +81,7 @@ class NoteUpdateService:
             text=note.text,
             represents_keyword_id=note.represents_keyword_id,
             is_pinned=note.is_pinned,
+            is_archived=note.is_archived,
             updated_at=note.updated_at,
             created_at=note.created_at,
             link_intervals=note.link_intervals,
@@ -110,6 +111,8 @@ class NoteUpdateService:
 
         if note_data.is_pinned is not Unset:
             note.is_pinned = note_data.is_pinned
+        if note_data.is_archived is not Unset:
+            note.is_archived = note_data.is_archived
 
         should_sync_graph = True
         if note.link_intervals and note_data.patch and note_data.patch is not Unset:

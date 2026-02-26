@@ -19,7 +19,10 @@ class ExportNotesInteractor:
 
     async def export_notes(self, user_telegram_id: int) -> bytes:
         await self._user_lookup_service.get_user_by_telegram_id(user_telegram_id)
-        notes = await self._notes_repo.get_by_user_telegram_id(user_telegram_id)
+        notes = await self._notes_repo.get_by_user_telegram_id(
+            user_telegram_id,
+            include_archived=True,
+        )
 
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:

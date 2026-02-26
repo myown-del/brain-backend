@@ -24,6 +24,7 @@ class UpdateNote:
     text: str | None | UnsetType = Unset
     patch: str | None | UnsetType = Unset
     is_pinned: bool | UnsetType = Unset
+    is_archived: bool | UnsetType = Unset
 
 
 @dataclass

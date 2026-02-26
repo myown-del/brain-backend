@@ -32,6 +32,7 @@ class NotesRepository(INotesRepository):
         from_date: datetime | None = None,
         to_date: datetime | None = None,
         pinned_first: bool = True,
+        include_archived: bool = False,
     ) -> list[Note]:
         query = (
             select(NoteDB)
@@ -44,6 +45,8 @@ class NotesRepository(INotesRepository):
             query = query.where(NoteDB.created_at >= from_date)
         if to_date:
             query = query.where(NoteDB.created_at <= to_date)
+        if not include_archived:
+            query = query.where(NoteDB.is_archived.is_(False))
         if pinned_first:
             query = query.order_by(NoteDB.is_pinned.desc(), NoteDB.updated_at.desc())
         else:
@@ -85,6 +88,7 @@ class NotesRepository(INotesRepository):
         query: str,
         exact_match: bool = False,
         pinned_first: bool = True,
+        include_archived: bool = False,
     ) -> list[Note]:
         normalized = (query or "").strip()
         if not normalized:
@@ -95,6 +99,8 @@ class NotesRepository(INotesRepository):
             .where(NoteDB.user_id == user_id)
             .where(NoteDB.title.isnot(None))
         )  # fmt: skip
+        if not include_archived:
+            stmt = stmt.where(NoteDB.is_archived.is_(False))
         if exact_match:
             stmt = stmt.where(NoteDB.title == query)
         else:
@@ -123,6 +129,7 @@ class NotesRepository(INotesRepository):
         db_model.text = entity.text
         db_model.represents_keyword_id = entity.represents_keyword_id
         db_model.is_pinned = entity.is_pinned
+        db_model.is_archived = entity.is_archived
         db_model.updated_at = ensure_utc_datetime(entity.updated_at) or utc_now()
         await self._session.flush()
 
@@ -204,6 +211,7 @@ class NotesRepository(INotesRepository):
         keyword_note_stmt = (
             select(NoteDB.title)
             .where(NoteDB.user_id == user_id)
+            .where(NoteDB.is_archived.is_(False))
             .where(NoteDB.represents_keyword_id.isnot(None))
             .where(NoteDB.title.isnot(None))
             .where(func.length(func.trim(NoteDB.title)) > 0)
@@ -239,6 +247,7 @@ class NotesRepository(INotesRepository):
                 ~exists()
                 .where(NoteDB.user_id == KeywordDB.user_id)
                 .where(NoteDB.title == KeywordDB.name)
+                .where(NoteDB.is_archived.is_(False))
                 .where(NoteDB.represents_keyword_id.isnot(None)),
             )
             .order_by(KeywordDB.name.asc())

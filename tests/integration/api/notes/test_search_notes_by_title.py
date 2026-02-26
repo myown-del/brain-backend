@@ -142,3 +142,70 @@ async def test_search_notes_by_title_pinned_first_false_uses_updated_at_order(
     assert response.status_code == status.HTTP_200_OK
     payload = response.json()
     assert payload[0]["id"] == str(newest_regular.id)
+
+
+@pytest.mark.asyncio
+async def test_search_notes_by_title_excludes_archived_by_default(
+    notes_app,
+    api_client,
+    repo_hub: RepositoryHub,
+    user,
+):
+    await create_keyword_note(
+        repo_hub=repo_hub,
+        user=user,
+        title="Search Archived",
+        text="Content",
+        is_archived=True,
+    )
+    await create_keyword_note(
+        repo_hub=repo_hub,
+        user=user,
+        title="Search Active",
+        text="Content",
+        is_archived=False,
+    )
+
+    async with api_client(notes_app) as client:
+        response = await client.request(
+            method="GET",
+            url="/api/notes/search/by-title?query=Search",
+        )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert {item["title"] for item in response.json()} == {"Search Active"}
+
+
+@pytest.mark.asyncio
+async def test_search_notes_by_title_include_archived_returns_all(
+    notes_app,
+    api_client,
+    repo_hub: RepositoryHub,
+    user,
+):
+    await create_keyword_note(
+        repo_hub=repo_hub,
+        user=user,
+        title="Search Archived Included",
+        text="Content",
+        is_archived=True,
+    )
+    await create_keyword_note(
+        repo_hub=repo_hub,
+        user=user,
+        title="Search Active Included",
+        text="Content",
+        is_archived=False,
+    )
+
+    async with api_client(notes_app) as client:
+        response = await client.request(
+            method="GET",
+            url="/api/notes/search/by-title?query=Search&include_archived=true",
+        )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert {item["title"] for item in response.json()} == {
+        "Search Archived Included",
+        "Search Active Included",
+    }

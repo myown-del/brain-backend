@@ -28,6 +28,7 @@ async def test_export_notes():
         user_id=mock_user.id,
         title=note_title,
         text="Content",
+        is_archived=True,
         represents_keyword_id=None,
     )
     mock_notes_repo.get_by_user_telegram_id.return_value = [note]
@@ -47,3 +48,4 @@ async def test_export_notes():
             assert data["title"] == note_title
             assert data["text"] == "Content"
             assert data["id"] == str(note_id)
+            assert data["is_archived"] is True

@@ -15,6 +15,7 @@ async def create_keyword_note(
     created_at: datetime | None = None,
     updated_at: datetime | None = None,
     is_pinned: bool = False,
+    is_archived: bool = False,
 ) -> Note:
     await repo_hub.keywords.ensure_keywords(user_id=user.id, names=[title])
     keyword = await repo_hub.keywords.get_by_user_and_name(
@@ -28,6 +29,7 @@ async def create_keyword_note(
         text=text,
         represents_keyword_id=keyword.id,
         is_pinned=is_pinned,
+        is_archived=is_archived,
         created_at=created_at,
         updated_at=updated_at,
     )

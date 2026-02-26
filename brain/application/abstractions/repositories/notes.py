@@ -26,6 +26,7 @@ class INotesRepository(Protocol):
         from_date: datetime | None = None,
         to_date: datetime | None = None,
         pinned_first: bool = True,
+        include_archived: bool = False,
     ) -> list[Note]:
         raise NotImplementedError
 
@@ -44,6 +45,7 @@ class INotesRepository(Protocol):
         query: str,
         exact_match: bool = False,
         pinned_first: bool = True,
+        include_archived: bool = False,
     ) -> list[Note]:
         raise NotImplementedError
 
