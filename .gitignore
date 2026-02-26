@@ -162,3 +162,7 @@ cython_debug/
 .idea/
 
 test.py
+AGENTS.md
+.agent/
+AGENTS.md
+.agent/
